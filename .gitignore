@@ -1,0 +1,10 @@
+.venv/
+.venv-tools/
+__pycache__/
+*.pyc
+.coverage
+coverage.json
+htmlcov/
+.verify/
+archives/*.tgz
+.DS_Store

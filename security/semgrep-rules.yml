@@ -1,0 +1,94 @@
+rules:
+  - id: aurora-sqli-string-built-query
+    languages: [python]
+    severity: ERROR
+    message: SQL sorgusu string birlestirme/f-string ile olusturuluyor (SQL injection). Parametreli sorgu kullanin.
+    pattern-either:
+      - pattern: $C.execute(f"...", ...)
+      - pattern: $C.execute($S % ..., ...)
+      - pattern: $C.execute($S + ..., ...)
+      - pattern: $C.execute("...".format(...), ...)
+
+  - id: aurora-os-system
+    languages: [python]
+    severity: ERROR
+    message: os.system kullanici girdisiyle kabuk komutu calistirir (command injection). subprocess.run([...], shell=False) kullanin.
+    pattern: os.system(...)
+
+  - id: aurora-subprocess-shell-true
+    languages: [python]
+    severity: ERROR
+    message: shell=True ile komut calistirma (command injection).
+    pattern: subprocess.$F(..., shell=True, ...)
+
+  - id: aurora-hardcoded-secret
+    languages: [generic]
+    severity: ERROR
+    message: Koda gomulu gizli bilgi. Ortam degiskeninden okuyun (os.environ).
+    paths:
+      include: ["*.py"]
+    pattern-regex: '(?mi)^\s*\w*(api_key|password|secret|token)\w*\s*=\s*f?"[^"\s{]{8,}'
+
+  - id: aurora-docker-add-url
+    languages: [generic]
+    severity: ERROR
+    message: Dockerfile ADD ile uzak URL'den dosya cekiyor.
+    paths:
+      include: ["*Dockerfile*"]
+    pattern-regex: '(?m)^\s*ADD\s+https?://'
+
+  - id: aurora-docker-user-root
+    languages: [generic]
+    severity: ERROR
+    message: Konteyner root kullanicisi ile calisiyor.
+    paths:
+      include: ["*Dockerfile*"]
+    pattern-regex: '(?mi)^\s*USER\s+(root|0)\s*$'
+
+  - id: aurora-docker-baked-secret
+    languages: [generic]
+    severity: ERROR
+    message: Imaja gizli bilgi gomulmus (ENV/ARG).
+    paths:
+      include: ["*Dockerfile*"]
+    pattern-regex: '(?mi)^\s*(ENV|ARG)\s+\w*(TOKEN|SECRET|PASSWORD|KEY)\w*\s*=?\s*\S+'
+
+  - id: aurora-tf-open-cidr
+    languages: [generic]
+    severity: ERROR
+    message: Kural tum internete (0.0.0.0/0) acik.
+    paths:
+      include: ["*.tf"]
+    pattern-regex: 'cidr_blocks\s*=\s*\[\s*"0\.0\.0\.0/0"'
+
+  - id: aurora-tf-public-bucket
+    languages: [generic]
+    severity: ERROR
+    message: Herkese acik bucket ACL.
+    paths:
+      include: ["*.tf"]
+    pattern-regex: 'acl\s*=\s*"public-read(-write)?"'
+
+  - id: aurora-tf-unencrypted
+    languages: [generic]
+    severity: ERROR
+    message: Depolama sifrelemesi kapali.
+    paths:
+      include: ["*.tf"]
+    pattern-regex: 'storage_encrypted\s*=\s*false'
+
+  - id: aurora-tf-public-db
+    languages: [generic]
+    severity: ERROR
+    message: Veritabani internete acik.
+    paths:
+      include: ["*.tf"]
+    pattern-regex: 'publicly_accessible\s*=\s*true'
+
+  - id: aurora-tf-inline-password
+    languages: [generic]
+    severity: ERROR
+    message: Terraform icinde acik metin parola. Degisken veya secret manager kullanin.
+    paths:
+      include: ["*.tf"]
+    pattern-regex: '(?m)^\s*password\s*=\s*"[^"]+"'

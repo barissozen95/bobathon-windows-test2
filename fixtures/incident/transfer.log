@@ -1,0 +1,25 @@
+2025-03-14 09:12:03,411 INFO aurora.core Transfer started: Ayşe Demir (TR544675118651433004071029) new balance=890.0
+2025-03-14 09:12:03,415 INFO aurora.core Transfer completed: Ayşe Demir -> Mehmet Arslan (TR142771657106125823036929)
+2025-03-14 09:12:07,902 INFO aurora.core Transfer started: Zeynep Güneş (TR408701416547017406305232) new balance=1219.9
+2025-03-14 09:12:37,904 WARNING gateway upstream timeout after 30s POST /transfers Idempotency-Key=7c1f0a52-9a41-4b8e-8f43-2d6b0e5c1a11
+2025-03-14 09:12:38,115 INFO gateway retry POST /transfers Idempotency-Key=7c1f0a52-9a41-4b8e-8f43-2d6b0e5c1a11
+2025-03-14 09:12:38,121 INFO aurora.core Transfer started: Zeynep Güneş (TR408701416547017406305232) new balance=739.8
+2025-03-14 09:12:38,124 INFO aurora.core Transfer completed: Zeynep Güneş -> Burak Aksoy (TR771203948571029384750112)
+2025-03-14 09:15:44,019 INFO aurora.core Transfer started: Mustafa Kaya (TR992834756102938475610293) new balance=402.35
+2025-03-14 09:15:44,020 ERROR uvicorn.error Exception in ASGI application
+Traceback (most recent call last):
+  File "services/core/service.py", line 29, in execute_transfer
+    dst = store.accounts[req.to_account]
+KeyError: 'ACC-9999'
+2025-03-14 09:15:44,022 INFO uvicorn.access POST /transfers HTTP/1.1 500
+2025-03-14 09:16:10,774 ERROR uvicorn.error Exception in ASGI application
+Traceback (most recent call last):
+  File "services/core/service.py", line 21, in execute_transfer
+    raise Exception("insufficient funds")
+Exception: insufficient funds
+2025-03-14 09:16:10,776 INFO uvicorn.access POST /transfers HTTP/1.1 500
+2025-03-14 09:20:01,332 INFO aurora.recon daily reconciliation: account ACC-1002 expected=1219.90 actual=1219.8999999999999
+2025-03-14 09:20:01,334 INFO aurora.recon daily reconciliation: account ACC-1007 expected=99.00 actual=99.00000000000006
+2025-03-14 09:20:01,980 WARNING aurora.recon fee mismatch transfer amount=3.00 policy_fee=0.02 charged_fee=0.01
+2025-03-14 09:20:01,981 WARNING aurora.recon fee mismatch transfer amount=1000.00 policy_fee=2.50 charged_fee=5.0
+2025-03-14 09:31:55,640 INFO uvicorn.access POST /transfers HTTP/1.1 422
