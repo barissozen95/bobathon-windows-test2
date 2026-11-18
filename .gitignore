@@ -8,3 +8,5 @@ htmlcov/
 .verify/
 archives/*.tgz
 .DS_Store
+PWNED*
+.vscode/

@@ -35,6 +35,7 @@ Yetkiniz yoksa facilitator ekranını paylaşır. Gördüklerinizi `reports/bobc
 - Bobcoin neye göre tükeniyor? Uzun bir sohbetle yeni açılmış bir sohbet arasında fark var mı?
 - MCP sunucuları ve büyük bağlam harcamayı nasıl etkiler?
 - Bobalytics'te **Bob factor** neyi ölçüyor? Bu metrik sizi neden ikna ederdi ya da etmezdi?
+- `--max-cost` çalışan bir turu durdurur mu? Deneme: `--max-cost 0.05` ile bir çalıştırma 0,094 harcadı ve yine de başarılı bildirdi. `stats.session_costs` değerini sınırla karşılaştırın. Sınır neyi garanti ediyor, neyi etmiyor?
 - Admin olarak bir kullanıcıya harcama limiti koymak ile her çalıştırmaya `--max-cost` koymak aynı şey mi?
 
 > Sunumda gösterilen verileri paylaşmadan önce anonimleştirin.

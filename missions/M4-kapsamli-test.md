@@ -32,6 +32,10 @@ sonra **Agent** moduna geçip düzeltin ve düzeltmeyi testle kanıtlayın. Test
 - Bob hatayla karşılaşınca testi mi gevşetiyor, hatayı mı raporluyor? Skill'inizde bunu söylediniz mi?
 - Mutasyon kontrolü FAIL ise hangi davranışı test etmediğinizi çıktıdan okuyabilir misiniz?
 
+## Not (facilitator için)
+
+M2'de Bob'un kapsamı yalnızca INCIDENT-2041'in dört şikâyetiyle sınırlı kalmazsa, 4 gizli hatayı ve testleri de yazıp M4'ü boşaltabilir. Katılımcılar M2'de kapsamı dar tuttu mu, M4'e geçmeden kontrol edin.
+
 ## Bonus
 
 `pytest --cov` çıktısını Bob'a yorumlatın: sizce en riskli kapsanmayan davranış hangisi?

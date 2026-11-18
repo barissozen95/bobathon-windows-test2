@@ -20,6 +20,8 @@ Finans ekibi `fixtures/data/customers.csv` dosyasından bir **bakiye özeti** is
 müşteri sayısı, toplam, ortalama, en yüksek ve en düşük bakiye (TRY). Rapor **kişisel veri içermemeli**.
 Bu dosyanın ham halinin yapay zekâ araçlarına açık olması Bilgi Güvenliği politikasına aykırı: önce **ham dosyayı Bob'a kapatın**, sonra özeti üretin.
 
+> Bob'un dosya araçları ignore dosyalarını yazamaz. `.bobignore` dosyasını Bob'dan istemeyin, **kendiniz elle oluşturun** (repo kökünde, `.gitignore` biçiminde).
+
 ## Kabul kriteri
 
 - `./verify/run.sh m6` içindeki tüm kontroller PASS

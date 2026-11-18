@@ -34,6 +34,11 @@ Bağımlılıklar: M4, M3'ün modunu kullanır. M8, önceki işlerin commit'lenm
 ./verify/run.sh m0
 ```
 
+## Kural: Bob'u `verify/` klasörüne yönlendirmeyin
+
+Bob `verify/` içindeki kontrol dosyalarını kendiliğinden okuyabilir ve planını oradan çıkarabilir. Bu, görevi çözmek değil, kontrolü geçmek olur.
+Bob'a `verify/` klasörünü göstermeyin. FAIL satırını **kendiniz** okuyun ve Bob'u PRD'deki ilgili cümleyle yönlendirin.
+
 ## Klasörler
 
 | Yol | İçerik |

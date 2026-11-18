@@ -6,9 +6,9 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 PYTHON="${PYTHON:-python3}"
-"$PYTHON" - <<'EOF' || { echo "Python 3.10+ gerekli."; exit 1; }
+"$PYTHON" - <<'EOF' || { echo "Python 3.11+ gerekli."; exit 1; }
 import sys
-sys.exit(0 if sys.version_info >= (3, 10) else 1)
+sys.exit(0 if sys.version_info >= (3, 11) else 1)
 EOF
 
 [ -d .venv ] || "$PYTHON" -m venv .venv

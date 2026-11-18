@@ -27,6 +27,16 @@ def test_bounded_run_output_saved():
     except json.JSONDecodeError as exc:
         raise AssertionError(f"gecerli JSON degil ({exc.msg}); '--format json' kullandiniz mi?") from None
     assert docs, "JSON belgesi yok"
+    results = [d for d in docs if isinstance(d, dict) and d.get("type") == "result"]
+    assert results, "'\"type\": \"result\"' iceren JSON belgesi yok; bu dosya gercek bir 'bob run --format json' ciktisi degil"
+    costs = [
+        d["stats"]["session_costs"]
+        for d in results
+        if isinstance(d.get("stats"), dict)
+        and isinstance(d["stats"].get("session_costs"), (int, float))
+        and not isinstance(d["stats"]["session_costs"], bool)
+    ]
+    assert costs, "result belgesinde 'stats.session_costs' (sayi) yok; bu dosya gercek bir 'bob run --format json' ciktisi degil"
 
 
 def test_notes_have_real_numbers():

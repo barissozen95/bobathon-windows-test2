@@ -12,6 +12,9 @@ Template'ten oluşturduğunuz **kendi GitHub reponuz** (M0) hedef.
 Bob'a `feature/<kısa-ad>` veya `fix/<kısa-ad>` adında bir dal açtırın. Bugüne kadarki işinizi **anlamlı birkaç commit** halinde kaydettirin
 (görev başına bir commit önerilir; mesajlar İngilizce ve ne yaptığını anlatan tek cümle). Çalışma dizini temiz kalmalı.
 
+Plan modunda Bob'un yazdığı plan dosyaları (ör. kök dizindeki `limits-service-plan.md`) çalışma dizinini kirletir: bunları **commit'leyin veya silin**.
+IDE'nin oluşturduğu `.vscode/` klasörü `.gitignore` içindedir, ayrıca bir şey yapmanız gerekmez.
+
 ## Hamle 2 - Push ve Pull Request
 
 Bob'a dalı `origin`'e push ettirin ve **Pull Request** açtırın. Başlık ve açıklamayı Bob, değişikliklere bakarak yazsın;

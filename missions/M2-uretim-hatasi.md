@@ -23,6 +23,11 @@ Bob'un bulduğu her nedeni `repro.py` çıktısıyla eşleştirin.
 Aynı işi bu kez `bob run` ile, **tur ve maliyet sınırı koyarak** yaptırın. Düzeltmelerden sonra `repro.py` ve `pytest` çalıştırın.
 Dört şikâyet birbirine benziyor ama **aynı nedene bağlı değil**. Bir düzeltme başkasını bozmasın.
 
+## Kapsam
+
+Kapsam **yalnızca yukarıdaki dört şikâyettir**. Başka hiçbir davranışı değiştirmeyin ve **yeni test yazmayın**. Bob başka hatalar görürse düzeltmesin, size söylesin.
+Diğer hatalar ve testler M4'ün konusudur.
+
 ## Kabul kriteri
 
 - `python fixtures/incident/repro.py` çıkış kodu `0`

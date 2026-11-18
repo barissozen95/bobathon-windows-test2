@@ -9,8 +9,8 @@ from common import ROOT, run
 
 
 def test_python_version():
-    """Python 3.10 veya uzeri"""
-    assert sys.version_info >= (3, 10), f"Python {sys.version_info.major}.{sys.version_info.minor} bulundu, 3.10+ gerekli"
+    """Python 3.11 veya uzeri"""
+    assert sys.version_info >= (3, 11), f"Python {sys.version_info.major}.{sys.version_info.minor} bulundu, 3.11+ gerekli"
 
 
 def test_dependencies_installed():

@@ -166,8 +166,8 @@
 
   <div class="box">
     <strong>Altın kural</strong>
-    Hazır prompt yok. Bob'un ne dediği değil, <strong>ne ürettiği</strong> önemli. Her seviyenin sonunda bir "boss kontrolü" var:
-    <code>./verify/run.sh</code>. Bob güçlü bir ortak, ama işin bittiğini söyleyen şey cevap değil, <strong>kanıt</strong>: boss kontrolü.
+    Hazır prompt yok. Bob'un ne dediği değil, <strong>ne ürettiği</strong> önemli. Her seviyenin sonunda bir "Bob kontrolü" var:
+    <code>./verify/run.sh</code>. Bob güçlü bir ortak, ama işin bittiğini söyleyen şey cevap değil, <strong>kanıt</strong>: Bob kontrolü.
   </div>
 </section>
 
@@ -180,16 +180,17 @@
       <tr><td><strong>Mesaj</strong></td><td>Birisi sana yazıyor: ne oldu, ne istiyor. Görevin hikâyesi budur.</td></tr>
       <tr><td><strong>Teslim edilecekler</strong></td><td>Yazılı çıktı listesi. Hepsini işaretlersen seviye biter ve rozet açılır.</td></tr>
       <tr><td><strong>Hamleler</strong></td><td>Sıra sıra yapacakların. Hamle 1 ve Hamle 2 çoğunlukla "önce anla, sonra yap" şeklinde.</td></tr>
-      <tr><td><strong>Boss kontrolü</strong></td><td>Otomatik doğrulayıcı. Çıktıya bakar, Bob'a ne yazdığına bakmaz.</td></tr>
+      <tr><td><strong>Bob kontrolü</strong></td><td>Otomatik doğrulayıcı. Çıktıya bakar, Bob'a ne yazdığına bakmaz.</td></tr>
       <tr><td><strong>Bonus soru</strong></td><td>Zorunlu değil ama asıl öğrenme burada. Merak edip dene.</td></tr>
     </tbody>
   </table>
 
-  <h3>Boss kontrolünü okumak</h3>
+  <h3>Bob kontrolünü okumak</h3>
   <pre><code>./verify/run.sh m1      # tek seviye
 ./verify/run.sh all     # hepsi, özet tablo</code></pre>
   <ul>
     <li><strong>PASS</strong> geçtin. <strong>FAIL</strong> altındaki <code>-&gt;</code> satırı neyin eksik olduğunu söyler. <strong>Önce onu oku</strong>, cevap çoğunlukla oradadır.</li>
+    <li><strong>Kural:</strong> Bob'u <code>verify/</code> klasörüne yönlendirme. Bob orayı kendiliğinden okuyabilir ve planını kontrol dosyasından çıkarabilir. FAIL satırını <strong>kendin</strong> oku, Bob'u PRD'deki ilgili cümleyle yönlendir.</li>
     <li><strong>SKIP</strong> manuel kontrol demek (ör. <code>gh</code> kurulu değilken PR). Eğitmene göster, seviye <code>PASS*</code> sayılır.</li>
   </ul>
 
@@ -241,7 +242,7 @@
   <ul class="check">
     <li><label><input type="checkbox"><span><strong>Bob IDE</strong> kurulu ve giriş yapılmış</span></label></li>
     <li><label><input type="checkbox"><span><strong>Bob Shell</strong> kurulu: terminalde <code>bob --help</code> çalışıyor</span></label></li>
-    <li><label><input type="checkbox"><span>Python <strong>3.10+</strong> ve <strong>git</strong> kurulu</span></label></li>
+    <li><label><input type="checkbox"><span>Python <strong>3.11+</strong> ve <strong>git</strong> kurulu</span></label></li>
     <li><label><input type="checkbox"><span><strong>GitHub hesabı</strong> hazır; template repo erişimin var; SSH anahtarı veya <code>gh auth login</code> tamam</span></label></li>
     <li><label><input type="checkbox"><span>Seviye 5 için: DevSecOps paketi lisansın varsa Findings paneli çalışır. <strong>Yoksa sorun yok</strong>, <code>./scripts/scan.sh --verbose</code> aynı bulguları gösterir</span></label></li>
     <li><label><input type="checkbox"><span>Seviye 7 için: <code>bob.ibm.com/admin</code> yetkin yoksa eğitmen ekranını paylaşır</span></label></li>
@@ -252,7 +253,7 @@
 <section id="m0" class="mission">
   <span class="level">Seviye 0</span>
   <h2>İlk gün</h2>
-  <div class="meta"><span class="tag xp">+30 XP</span><span class="tag">10 dk</span><span class="tag">Güç-up: mod seçici, @ bağlamı</span><span class="tag plain">Boss: ./verify/run.sh m0</span></div>
+  <div class="meta"><span class="tag xp">+30 XP</span><span class="tag">10 dk</span><span class="tag">Güç-up: mod seçici, @ bağlamı</span><span class="tag plain">Bob: ./verify/run.sh m0</span></div>
 
   <div class="msg">
     <div class="avatar">EL</div>
@@ -284,7 +285,7 @@ source .venv/bin/activate      # isteğe bağlı</code></pre>
     <p>Bob'a projeyi <strong>kendi cümlelerinle</strong> anlattır ve <code>docs/</code> ile karşılaştır. Sonra aynı soruyu başka bir modda tekrarla.</p>
   </div>
 
-  <div class="boss"><div class="lbl">Boss kontrolü</div><pre><code>./verify/run.sh m0</code></pre></div>
+  <div class="boss"><div class="lbl">Bob kontrolü</div><pre><code>./verify/run.sh m0</code></pre></div>
 
   <details class="bonus"><summary>Bonus sorular</summary><div><ul>
     <li>Sohbet kutusunun yanındaki <strong>mod seçici</strong>: her mod neye izin veriyor?</li>
@@ -303,7 +304,7 @@ source .venv/bin/activate      # isteğe bağlı</code></pre>
 <section id="m1" class="mission">
   <span class="level">Seviye 1</span>
   <h2>Boş sayfadan servis</h2>
-  <div class="meta"><span class="tag xp">+30 XP</span><span class="tag">25 dk</span><span class="tag">Güç-up: Plan / Agent, todo listesi</span><span class="tag plain">Boss: ./verify/run.sh m1 (35 kontrol)</span></div>
+  <div class="meta"><span class="tag xp">+30 XP</span><span class="tag">25 dk</span><span class="tag">Güç-up: Plan / Agent, todo listesi</span><span class="tag plain">Bob: ./verify/run.sh m1 (35 kontrol)</span></div>
 
   <div class="msg">
     <div class="avatar gold">ÜS</div>
@@ -331,7 +332,7 @@ source .venv/bin/activate      # isteğe bağlı</code></pre>
     <p>Onayladığın planı uygulat. Todo listesini izle: Bob işi parçalara bölüyor mu, sen kontrol edebiliyor musun?</p>
   </div>
 
-  <div class="boss"><div class="lbl">Boss kontrolü</div><pre><code>./verify/run.sh m1</code></pre>FAIL satırının altındaki açıklama, PRD'deki hangi kuralı kaçırdığını söyler. Düzeltmeyi o cümleye dayandır.</div>
+  <div class="boss"><div class="lbl">Bob kontrolü</div><pre><code>./verify/run.sh m1</code></pre>FAIL satırının altındaki açıklama, PRD'deki hangi kuralı kaçırdığını söyler. Düzeltmeyi o cümleye dayandır.</div>
 
   <details class="bonus"><summary>Bonus sorular</summary><div><ul>
     <li>Önce <em>anlamak</em> ile <em>yazmak</em> aynı mod olmak zorunda mı?</li>
@@ -357,7 +358,7 @@ source .venv/bin/activate      # isteğe bağlı</code></pre>
 <section id="m2" class="mission">
   <span class="level">Seviye 2</span>
   <h2>SEV-2 alarmı</h2>
-  <div class="meta"><span class="tag xp">+40 XP</span><span class="tag">20 dk</span><span class="tag">Güç-up: Bob Shell (bob chat, bob run)</span><span class="tag plain">Boss: repro.py + ./verify/run.sh m2 (24 kontrol)</span></div>
+  <div class="meta"><span class="tag xp">+40 XP</span><span class="tag">20 dk</span><span class="tag">Güç-up: Bob Shell (bob chat, bob run)</span><span class="tag plain">Bob: repro.py + ./verify/run.sh m2 (24 kontrol)</span></div>
 
   <div class="msg">
     <div class="avatar red">!</div>
@@ -400,7 +401,7 @@ bob run --help      # tüm seçenekler</code></pre>
     <div class="box danger"><strong>Tehlike</strong><code>bob run</code> tüm araçları <strong>önceden onaylı</strong> çalıştırır, komut başına onay istemez. Sınırsız çalıştırma. <code>--max-turns</code> ve <code>--max-cost</code> senin frenin.</div>
   </div>
 
-  <div class="boss"><div class="lbl">Boss kontrolü</div><pre><code>python fixtures/incident/repro.py
+  <div class="boss"><div class="lbl">Bob kontrolü</div><pre><code>python fixtures/incident/repro.py
 pytest
 ./verify/run.sh m2</code></pre></div>
 
@@ -429,7 +430,7 @@ pytest
 <section id="m3" class="mission">
   <span class="level">Seviye 3</span>
   <h2>Kendi QA'ni kur</h2>
-  <div class="meta"><span class="tag xp">+60 XP</span><span class="tag">20 dk</span><span class="tag">Güç-up: Custom Mode + Rules + Skills</span><span class="tag plain">Boss: ./verify/run.sh m3 (11 kontrol)</span></div>
+  <div class="meta"><span class="tag xp">+60 XP</span><span class="tag">20 dk</span><span class="tag">Güç-up: Custom Mode + Rules + Skills</span><span class="tag plain">Bob: ./verify/run.sh m3 (11 kontrol)</span></div>
 
   <div class="msg">
     <div class="avatar">EL</div>
@@ -493,7 +494,7 @@ description: Use when ...  (Bob'un ne zaman devreye alacağını anlatan tetikle
 # Skill gövdesi: adım adım prosedür</code></pre>
   </div>
 
-  <div class="boss"><div class="lbl">Boss kontrolü</div><pre><code>./verify/run.sh m3</code></pre>Gerçek test: modu seç, üretim koduna yazdırmayı dene. Reddedilmeli.</div>
+  <div class="boss"><div class="lbl">Bob kontrolü</div><pre><code>./verify/run.sh m3</code></pre>Gerçek test: modu seç, üretim koduna yazdırmayı dene. Reddedilmeli.</div>
 
   <details class="bonus"><summary>Bonus sorular</summary><div><ul>
     <li>Bob Settings'teki <strong>Modes</strong> sekmesi veya <code>bob --mode &lt;slug&gt;</code> ile modu seç. Hangi alanlar zorunlu?</li>
@@ -520,7 +521,7 @@ description: Use when ...  (Bob'un ne zaman devreye alacağını anlatan tetikle
 <section id="m4" class="mission">
   <span class="level">Seviye 4</span>
   <h2>Test kalesi</h2>
-  <div class="meta"><span class="tag xp">+50 XP</span><span class="tag">25 dk</span><span class="tag">Güç-up: Seviye 3'te kurduğun mod + skill</span><span class="tag plain">Boss: ./verify/run.sh m4 (12 kontrol)</span></div>
+  <div class="meta"><span class="tag xp">+50 XP</span><span class="tag">25 dk</span><span class="tag">Güç-up: Seviye 3'te kurduğun mod + skill</span><span class="tag plain">Bob: ./verify/run.sh m4 (12 kontrol)</span></div>
 
   <div class="msg">
     <div class="avatar">EL</div>
@@ -556,7 +557,7 @@ description: Use when ...  (Bob'un ne zaman devreye alacağını anlatan tetikle
     <p>Test geçmiyorsa önce <strong>testin mi kodun mu</strong> yanlış olduğuna el kitabına bakarak karar ver.</p>
   </div>
 
-  <div class="boss"><div class="lbl">Boss kontrolü</div><pre><code>./verify/run.sh m4</code></pre>Mutasyon kontrolü FAIL verirse, çıktı hangi davranışı test etmediğini söyler.</div>
+  <div class="boss"><div class="lbl">Bob kontrolü</div><pre><code>./verify/run.sh m4</code></pre>Mutasyon kontrolü FAIL verirse, çıktı hangi davranışı test etmediğini söyler.</div>
 
   <details class="bonus"><summary>Bonus sorular</summary><div><ul>
     <li>Moddan üretim koduna dokunmasını iste. Ne oluyor? Bu bir kısıtlama mı, güvenlik ağı mı?</li>
@@ -583,7 +584,7 @@ description: Use when ...  (Bob'un ne zaman devreye alacağını anlatan tetikle
 <section id="m5" class="mission">
   <span class="level">Seviye 5</span>
   <h2>Güvenlik avı</h2>
-  <div class="meta"><span class="tag xp">+50 XP</span><span class="tag">20 dk</span><span class="tag">Güç-up: Bob Findings, Fix with Bob, .devsecignore</span><span class="tag plain">Boss: ./verify/run.sh m5</span></div>
+  <div class="meta"><span class="tag xp">+50 XP</span><span class="tag">20 dk</span><span class="tag">Güç-up: Bob Findings, Fix with Bob, .devsecignore</span><span class="tag plain">Bob: ./verify/run.sh m5</span></div>
 
   <div class="msg">
     <div class="avatar purple">BG</div>
@@ -611,7 +612,6 @@ description: Use when ...  (Bob'un ne zaman devreye alacağını anlatan tetikle
       <li><label><input type="checkbox"><span>A1-A5'in hepsi kapandı: <code>./scripts/scan.sh</code> <strong>0 bulgu</strong></span></label></li>
       <li><label><input type="checkbox"><span><code>./verify/run.sh m5</code> tüm kontrollerde PASS</span></label></li>
       <li><label><input type="checkbox"><span>İşlev bozulmadı: geçerli sorgu ve geçerli arşiv adı (ör. <code>q1-2025</code>) hâlâ çalışıyor</span></label></li>
-      <li><label><input type="checkbox"><span>Temizlik yapıldı: <code>rm -f PWNED.tgz archives/a</code></span></label></li>
     </ul>
   </div>
 
@@ -622,13 +622,9 @@ description: Use when ...  (Bob'un ne zaman devreye alacağını anlatan tetikle
     <h3>Hamle 2 · Düzelttir</h3>
     <p>Bir bulguyu seçip <strong>Fix with Bob</strong> de. Bob, bulgu ayrıntılarıyla dolu bir görev başlatır. Sonra kalanları toplu seçerek kapat.</p>
     <div class="box danger"><strong>Yasak</strong><code># nosemgrep</code> ile susturmak yok. Gerçek bir yanlış pozitif varsa doğru yol <code>.bob/.devsecignore</code> dosyasıdır (gitignore biçimi). Kaynakları silerek de "çözemezsin".</div>
-    <div class="box warn"><strong>Boss ayak izi bırakır</strong>
-      Düzeltilmemiş kodda <code>./verify/run.sh m5</code> komut enjeksiyonu denemesini gerçekten çalıştırır; repoda <code>PWNED.tgz</code> (kök dizin) ve <code>archives/a</code> oluşur. Bitince mutlaka sil, yoksa Seviye 8 "temiz çalışma dizini" kontrolünde takılırsın:
-<pre><code>rm -f PWNED.tgz archives/a</code></pre>
-    </div>
   </div>
 
-  <div class="boss"><div class="lbl">Boss kontrolü</div><pre><code>./scripts/scan.sh          # 0 bulgu vermeli
+  <div class="boss"><div class="lbl">Bob kontrolü</div><pre><code>./scripts/scan.sh          # 0 bulgu vermeli
 ./verify/run.sh m5</code></pre></div>
 
   <details class="bonus"><summary>Bonus sorular</summary><div><ul>
@@ -655,7 +651,7 @@ description: Use when ...  (Bob'un ne zaman devreye alacağını anlatan tetikle
 <section id="m6" class="mission">
   <span class="level">Seviye 6</span>
   <h2>Tuzağa düşme</h2>
-  <div class="meta"><span class="tag xp">+50 XP</span><span class="tag">20 dk</span><span class="tag">Güç-up: prompt injection karşısında davranış, .bobignore</span><span class="tag plain">Boss: ./verify/run.sh m6</span></div>
+  <div class="meta"><span class="tag xp">+50 XP</span><span class="tag">20 dk</span><span class="tag">Güç-up: prompt injection karşısında davranış, .bobignore</span><span class="tag plain">Bob: ./verify/run.sh m6</span></div>
 
   <div class="msg">
     <div class="avatar green">FR</div>
@@ -703,7 +699,7 @@ description: Use when ...  (Bob'un ne zaman devreye alacağını anlatan tetikle
     </ol>
   </div>
 
-  <div class="boss"><div class="lbl">Boss kontrolü</div><pre><code>./verify/run.sh m6</code></pre></div>
+  <div class="boss"><div class="lbl">Bob kontrolü</div><pre><code>./verify/run.sh m6</code></pre></div>
 
   <details class="bonus"><summary>Bonus sorular</summary><div><ul>
     <li>SDK dokümanında Bob'a yönelik <strong>gizli bir talimat</strong> var mıydı? Bob onu izledi mi, sana söyledi mi? Onay penceresi seni korudu mu?</li>
@@ -729,7 +725,7 @@ description: Use when ...  (Bob'un ne zaman devreye alacağını anlatan tetikle
 <section id="m7" class="mission">
   <span class="level">Seviye 7</span>
   <h2>CFO'nun sorusu</h2>
-  <div class="meta"><span class="tag xp">+40 XP</span><span class="tag">15 dk</span><span class="tag">Güç-up: Bobcoin, Bob Admin, Bobalytics, --max-cost</span><span class="tag plain">Boss: ./verify/run.sh m7</span></div>
+  <div class="meta"><span class="tag xp">+40 XP</span><span class="tag">15 dk</span><span class="tag">Güç-up: Bobcoin, Bob Admin, Bobalytics, --max-cost</span><span class="tag plain">Bob: ./verify/run.sh m7</span></div>
 
   <div class="msg">
     <div class="avatar">EL</div>
@@ -764,7 +760,7 @@ description: Use when ...  (Bob'un ne zaman devreye alacağını anlatan tetikle
     <div class="box warn"><strong>Anonimleştir</strong>Sunumda gösterilen verileri paylaşmadan önce anonimleştir.</div>
   </div>
 
-  <div class="boss"><div class="lbl">Boss kontrolü</div><pre><code>./verify/run.sh m7</code></pre>JSON dosyası boşsa <code>--format json</code> kullandığını ve çıktıyı dosyaya yönlendirdiğini kontrol et.</div>
+  <div class="boss"><div class="lbl">Bob kontrolü</div><pre><code>./verify/run.sh m7</code></pre>JSON dosyası boşsa <code>--format json</code> kullandığını ve çıktıyı dosyaya yönlendirdiğini kontrol et.</div>
 
   <details class="bonus"><summary>Bonus sorular</summary><div><ul>
     <li>Bobcoin neye göre tükeniyor? Uzun bir sohbetle yeni açılmış bir sohbet arasında fark var mı?</li>
@@ -785,7 +781,7 @@ description: Use when ...  (Bob'un ne zaman devreye alacağını anlatan tetikle
 <section id="m8" class="mission">
   <span class="level">Seviye 8</span>
   <h2>Teslimat</h2>
-  <div class="meta"><span class="tag xp">+70 XP</span><span class="tag">15 dk</span><span class="tag">Güç-up: Bob ile commit, push, Pull Request</span><span class="tag plain">Boss: ./verify/run.sh m8</span></div>
+  <div class="meta"><span class="tag xp">+70 XP</span><span class="tag">15 dk</span><span class="tag">Güç-up: Bob ile commit, push, Pull Request</span><span class="tag plain">Bob: ./verify/run.sh m8</span></div>
 
   <div class="msg">
     <div class="avatar">EL</div>
@@ -847,7 +843,7 @@ gh pr checks --watch      # gh kuruluysa CI durumunu izler</code></pre></div>
     <thead><tr><th>Ne için</th><th>Komut</th></tr></thead>
     <tbody>
       <tr><td>Kurulum</td><td><code>./setup.sh --scanners</code></td></tr>
-      <tr><td>Tek seviye boss kontrolü</td><td><code>./verify/run.sh m1</code></td></tr>
+      <tr><td>Tek seviye Bob kontrolü</td><td><code>./verify/run.sh m1</code></td></tr>
       <tr><td>Hepsi</td><td><code>./verify/run.sh all</code></td></tr>
       <tr><td>Bob Shell, etkileşimli</td><td><code>bob chat</code></td></tr>
       <tr><td>Bob Shell, belirli mod</td><td><code>bob --mode &lt;slug&gt;</code></td></tr>
@@ -870,7 +866,7 @@ gh pr checks --watch      # gh kuruluysa CI durumunu izler</code></pre></div>
       <tr><td><code>services/core/</code></td><td>Üzerinde çalışılan servis (Seviye 2, 4, 5)</td></tr>
       <tr><td><code>services/limits/</code></td><td>Seviye 1'de <em>senin</em> yazacağın servis</td></tr>
       <tr><td><code>deploy/</code></td><td>Dockerfile, Terraform, worker bağımlılıkları (Seviye 5)</td></tr>
-      <tr><td><code>verify/</code></td><td>Boss kontrolleri</td></tr>
+      <tr><td><code>verify/</code></td><td>Bob kontrolleri</td></tr>
       <tr><td><code>.bob/</code></td><td>Seviye 3'te senin oluşturacağın mod, kural ve skill</td></tr>
     </tbody>
   </table>
@@ -914,7 +910,7 @@ gh pr checks --watch      # gh kuruluysa CI durumunu izler</code></pre></div>
     <li><label><input type="checkbox"><span>Seviye 2 PASS · 4 şikâyet kapandı, <code>repro.py</code> çıkış kodu 0 (24/24)</span></label></li>
     <li><label><input type="checkbox"><span>Seviye 3 PASS · QA modu, kurallar ve skill (11/11)</span></label></li>
     <li><label><input type="checkbox"><span>Seviye 4 PASS · ≥ 25 test, ≥ %85 kapsam, 4 gizli hata kapandı (12/12)</span></label></li>
-    <li><label><input type="checkbox"><span>Seviye 5 PASS · Semgrep 0 bulgu, <code>PWNED.tgz</code> temizlendi</span></label></li>
+    <li><label><input type="checkbox"><span>Seviye 5 PASS · Semgrep 0 bulgu, A5 sürümleri elle kontrol edildi</span></label></li>
     <li><label><input type="checkbox"><span>Seviye 6 PASS · prompt injection izlenmedi, ham müşteri verisi kapatıldı</span></label></li>
     <li><label><input type="checkbox"><span>Seviye 7 PASS · ölçüm notları ve bütçe önerisi</span></label></li>
     <li><label><input type="checkbox"><span>Seviye 8 PASS · dal, ≥ 3 commit, push, açık PR, yeşil CI</span></label></li>

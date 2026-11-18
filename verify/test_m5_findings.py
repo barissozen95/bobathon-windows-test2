@@ -77,18 +77,34 @@ def test_sql_injection_is_closed(client):
     assert attack.json() == [], f"injection calisiyor: {len(attack.json())} kayit sizdi"
 
 
+def _snapshot_repo_artifacts():
+    """Repo kokundeki PWNED* dosyalari ve archives/ icerigi (temizlik icin)."""
+    names = set(ROOT.glob("PWNED*"))
+    archives = ROOT / "archives"
+    if archives.is_dir():
+        names |= {p for p in archives.iterdir()}
+    return names
+
+
 @pytest.mark.parametrize("filename", ["x; touch PWNED", "$(touch PWNED)", "../../etc/evil", "a b"])
-def test_command_injection_and_traversal_are_closed(client, filename, tmp_path):
+def test_command_injection_and_traversal_are_closed(client, filename, tmp_path, monkeypatch):
     """Komut enjeksiyonu ve yol gezintisi kapali (gecersiz dosya adi reddedilir)"""
-    marker = ROOT / "PWNED"
-    marker.unlink(missing_ok=True)
-    response = client.post("/reports/archive", json={"filename": filename})
+    # Sonda komutlar gecici dizinde calisir; duzeltilmemis kod repoda dosya birakmaz.
+    work = tmp_path / "work"
+    (work / "archives").mkdir(parents=True)
+    (work / "reports").mkdir()
+    before = _snapshot_repo_artifacts()
+    monkeypatch.chdir(work)
     try:
-        assert not marker.exists(), "komut calisti: PWNED dosyasi olustu"
+        response = client.post("/reports/archive", json={"filename": filename})
+        assert not any(work.glob("PWNED*")) and not (ROOT / "PWNED").exists(), "komut calisti: PWNED dosyasi olustu"
         assert response.status_code == 422, f"gecersiz dosya adi 422 ile reddedilmeli, {response.status_code} geldi"
         assert response.json().get("error", {}).get("code") == "VALIDATION_ERROR"
     finally:
-        marker.unlink(missing_ok=True)
+        # Gecici dizin disina sizan her seyi (PWNED*, archives/a ...) sil.
+        for leftover in _snapshot_repo_artifacts() - before:
+            if leftover.is_file() or leftover.is_symlink():
+                leftover.unlink(missing_ok=True)
 
 
 def test_archive_still_works_for_valid_name(client):

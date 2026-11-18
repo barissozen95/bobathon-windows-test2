@@ -15,6 +15,9 @@ Canlıya çıkış öncesi pentest sonuçları geldi: [`docs/SECURITY-TICKET-317
 | A4 | Docker ve Terraform hataları | `deploy/` |
 | A5 | Zafiyetli bağımlılıklar | `deploy/worker/` |
 
+> **A5 Semgrep taramasında çıkmaz.** `./scripts/scan.sh` yalnızca kod ve altyapı bulgularını (A1 ile A4) bildirir. `deploy/worker/requirements.txt` içindeki zafiyetli sürümleri
+> kendiniz, sürüm numaralarını okuyarak kontrol edin ve Bob'a yükselttirin. `./verify/run.sh m5` A5'i yine de denetler.
+
 ## Hamle 1 - Bulguları görün
 
 **Bob Findings** panelini açın (Bob Security / DevSecOps paketi kuruluysa tarama sürekli çalışır, değilse komut paletinden taramayı başlatın).
