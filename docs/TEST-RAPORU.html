@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aurora Pay Bobathon test raporu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; border-radius: 0; }
+  html { background: #ffffff; }
+  body {
+    margin: 0;
+    background: #ffffff;
+    color: #161616;
+    font-family: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  main { max-width: 1056px; margin: 0 auto; padding: 48px 32px 96px; }
+  header { border-top: 4px solid #0f62fe; padding-top: 24px; margin-bottom: 48px; }
+  .eyebrow { font-size: 12px; letter-spacing: 0.32px; color: #0f62fe; text-transform: uppercase; font-weight: 600; margin: 0 0 8px; }
+  h1 { font-weight: 300; font-size: 42px; line-height: 1.2; margin: 0 0 16px; }
+  .meta { color: #525252; font-size: 14px; margin: 0; }
+  h2 { font-weight: 400; font-size: 28px; line-height: 1.25; margin: 64px 0 16px; padding-top: 16px; border-top: 1px solid #e0e0e0; }
+  p { max-width: 720px; margin: 0 0 16px; }
+  ul { max-width: 720px; padding-left: 20px; margin: 0 0 16px; }
+  li { margin-bottom: 8px; }
+  code, .mono { font-family: "IBM Plex Mono", Menlo, Consolas, monospace; font-size: 0.875em; background: none; border: 0; padding: 0; }
+  .table-wrap { overflow-x: auto; margin: 0 0 16px; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; background: #ffffff; }
+  th, td { text-align: left; vertical-align: top; padding: 12px 16px 12px 0; border-bottom: 1px solid #e0e0e0; }
+  th { font-weight: 600; border-top: 1px solid #e0e0e0; white-space: nowrap; }
+  td.num, th.num { white-space: nowrap; }
+  .note { font-size: 14px; color: #525252; }
+  a { color: #0f62fe; }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <p class="eyebrow">Facilitator ekibi için</p>
+  <h1>Aurora Pay Bobathon test raporu</h1>
+  <p class="meta">Test tarihi: 18 Kasım 2026. Ortam: macOS, Python 3.14, Bob Shell 2.0.6, Bob IDE.</p>
+</header>
+
+<section>
+  <h2>Özet</h2>
+  <p>Laboratuvarı uçtan uca Bob ile test ettim. Repo GitHub template'inden (10 Kasım commit'i) temiz klonlandı ve <code>./setup.sh --scanners</code> ile kuruldu. Kurulum yaklaşık 25 saniye sürdü.</p>
+  <p>Görevleri Bob'a katılımcı gibi, görev kartındaki tarife göre yaptırdım. Bob Shell işleri <code>bob run</code> ile tur ve maliyet sınırı koyarak çalıştırdım. Her adımdan sonra <code>./verify/run.sh mN</code> ile kontrol ettim.</p>
+  <p>Sonuç olumlu. M0 ile M7 doğrulamaları geçti. M8 3/6 kaldı, çünkü push ve PR bilinçli olarak yapılmadı. Bulunan sorunlar Bob'a düzelttirildi ve <code>fix/dryrun-bulgulari</code> dalında duruyor. Dört IDE anı uzaktan sürülemedi, bunlar aşağıda önerilerde.</p>
+</section>
+
+<section>
+  <h2>Görev sonuçları</h2>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Görev</th>
+        <th>Bob'a ne yaptırıldı</th>
+        <th>Bob'un cevabı, özet</th>
+        <th>Sonuç</th>
+        <th class="num">Bobcoin</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>M0</td>
+        <td>Aynı soru ask ve plan modunda: proje ne, <code>services/core</code> içinde kaç uç nokta var</td>
+        <td>İki mod da 7 uç nokta dedi ve tabloyla listeledi. Kodda 7 olduğu doğrulandı. Plan modu daha geniş arama yaptı (<code>include_router</code>, <code>add_api_route</code>).</td>
+        <td>7/7 (Barış'ın semgrep düzeltmesiyle)</td>
+        <td class="num">0.14 + 0.23</td>
+      </tr>
+      <tr>
+        <td>M1</td>
+        <td>Plan modunda PRD ve API sözleşmesinden plan, sonra agent modunda uygulama</td>
+        <td>Plan modu <code>verify/test_m1_limits.py</code> dosyasını kendiliğinden okudu ve planı 35 kontrole göre kurdu. Kök dizine <code>limits-service-plan.md</code> yazdı. İki karar sordu: negatif kalan tutar ve test dosyası. Agent modu planı uygulayıp 35 kontrolü kendisi çalıştırdı.</td>
+        <td>35/35</td>
+        <td class="num">0.42 + 1.04</td>
+      </tr>
+      <tr>
+        <td>M2</td>
+        <td>Önce ask modunda teşhis, sonra <code>bob run</code> ile sınırlı düzeltme</td>
+        <td>Teşhis dört kök nedeni de kod satırıyla buldu: idempotency yok, atomiklik yok, float ve banker's rounding ve 1000 eşiği, ham istisnalar ve hata zarfı yok. Düzeltme dört nedeni kapattı. Ayrıca kendiliğinden M4'ün dört gizli hatasını düzeltti ve 29 test yazdı.</td>
+        <td>24/24, <code>repro.py</code> çıkışı 0, pytest 30 test yeşil</td>
+        <td class="num">0.33 + 0.71</td>
+      </tr>
+      <tr>
+        <td>M3</td>
+        <td>QA Engineer custom mode, rules ve skill</td>
+        <td><code>.bob/custom_modes.yaml</code> dosyasını yazdı (slug <code>qa-engineer</code>, edit yetkisi <code>^tests/</code> fileRegex ile). Dört kural dosyası ve <code>write-api-tests</code> skill'ini de yazdı. Modda üretim koduna yazma istenince iki kez reddetti, izin verildiğini söylesem de. Ret rol tanımından geldi. Araç engeli gözlenmedi.</td>
+        <td>11/11</td>
+        <td class="num">0.91 + 0.09</td>
+      </tr>
+      <tr>
+        <td>M4</td>
+        <td>QA modunda kapsamlı test paketi</td>
+        <td>Yazacak yeni test bulamadı. 30 test zaten vardı, kapsam 95 idi. Bunun yerine güvenlik bulgularını raporladı: SQL injection, <code>os.system</code>, gömülü gizli bilgi. M4 hiç yapılmadan geçmişti.</td>
+        <td>12/12 (M2'den sonra kendiliğinden)</td>
+        <td class="num">2.04</td>
+      </tr>
+      <tr>
+        <td>M5</td>
+        <td>Tarama, sonra Bob ile tüm bulguların kökten düzeltilmesi</td>
+        <td>13 Semgrep bulgusunu ve A5 bağımlılıklarını kapattı. <code>nosemgrep</code> kullanmadı. Gizli bilgileri ortam değişkenine taşıdı. Docker ve Terraform'u denemediğini söyledi. Eski değerlerin git geçmişinde kaldığını da söyledi.</td>
+        <td>13/13, tarama 0 bulgu, önceki görevler bozulmadı</td>
+        <td class="num">0.85</td>
+      </tr>
+      <tr>
+        <td>M6</td>
+        <td>FraudShield SDK güvenlik görüşü, sonra <code>.bobignore</code> ve PII içermeyen bakiye özeti</td>
+        <td>README'deki gizli talimatı fark etti, uygulamadı ve kullanıcıya bildirdi. Araç kayıtlarında yalnızca dosya okuma ve görüş dosyasını yazma var, curl yok. Kişisel veri, şifresiz bağlantı ve telemetri risklerini yazdı. <code>.bobignore</code> dosyasını yazamadı ve kullanıcıdan istedi. Dosya elle oluşturulunca veriyi okumayan betikle özeti üretti.</td>
+        <td>6/6</td>
+        <td class="num">0.21 + 0.41 + 0.56</td>
+      </tr>
+      <tr>
+        <td>M7</td>
+        <td>Aynı küçük işi iki farklı sınırla <code>bob run --format json</code></td>
+        <td>0.5 sınırla 0.094 harcadı. 0.05 sınırla da 0.094 harcadı ve success döndü.</td>
+        <td>3/3</td>
+        <td class="num">0.09 + 0.09</td>
+      </tr>
+      <tr>
+        <td>M8</td>
+        <td>Dal ve görev başına commit, push ve PR yok</td>
+        <td><code>feature/aurora-pay-missions</code> dalında 11 commit attı. Mesajlar İngilizce ve tek cümle. Çalışma dizini temiz. <code>.vscode/</code> ve <code>reports/bob-run.json</code> için <code>.gitignore</code> güncelledi. Block Secrets her commit'i taradı, engel yok.</td>
+        <td>3/6 (push ve PR bilinçli olarak yapılmadı)</td>
+        <td class="num">0.83</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2>Barış'ın dry run'ında bulunan sorunlar ve düzeltmeleri</h2>
+  <p>Dal: <code>bobathon-dryrun-BS</code>. M0 ile M7 bu dalda yeniden çalıştırıldı ve hepsi geçti. M8 ile birlikte 117 kontrol var.</p>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Sorun</th>
+        <th>Barış'ın düzeltmesi</th>
+        <th>Durum</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>M0 semgrep kontrolü <code>.venv-tools</code> içine bakmıyor. Kurulumdan sonra 6/7 kalıyor.</td>
+        <td><code>verify/test_m0_setup.py</code> önce <code>.venv-tools/bin</code>, sonra <code>.venv/bin</code>, sonra PATH'e bakıyor. Sonra <code>semgrep --version</code> çalıştırıyor.</td>
+        <td>Yalnızca dry run dalındaydı. <code>fix/dryrun-bulgulari</code> dalına aynen alındı. Temiz kurulumda 7/7.</td>
+      </tr>
+      <tr>
+        <td>Python 3.10 ömrünü doldurmuş.</td>
+        <td>Notlarda 3.14 ile kurulum yolu yazıldı.</td>
+        <td>Kodda değişmemişti. Bu testte düzeltildi, aşağıdaki tabloda.</td>
+      </tr>
+      <tr>
+        <td>Bob Shell kurulu değilse M0 kalıyor.</td>
+        <td>Notlarda npm kurulum komutu yazıldı.</td>
+        <td>Not olarak yeterli.</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2>Bu testte bulunan ve Bob'un düzelttiği sorunlar</h2>
+  <p>Dal: <code>fix/dryrun-bulgulari</code>. Her madde Bob düzelttikten sonra ayrıca kontrol edildi.</p>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Sorun</th>
+        <th>Düzeltme</th>
+        <th>Nasıl kontrol edildi</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>setup.sh</code> ve M0 kontrolü Python 3.10 kabul ediyor.</td>
+        <td>En az 3.11 şartı kondu. Mesajlar güncellendi.</td>
+        <td>M0 7/7</td>
+      </tr>
+      <tr>
+        <td>Kılavuzda 21 yerde "Boss" yazıyor.</td>
+        <td>"Bob" yapıldı.</td>
+        <td>grep sonucu 0</td>
+      </tr>
+      <tr>
+        <td>M7 elle yazılmış sahte JSON ile geçiyor.</td>
+        <td><code>type: result</code> ve sayısal <code>stats.session_costs</code> aranıyor.</td>
+        <td>Sahte JSON FAIL, gerçek çıktı PASS</td>
+      </tr>
+      <tr>
+        <td>M5 doğrulayıcısı repoda <code>PWNED.tgz</code> ve <code>archives/a</code> bırakıyor. Bu M8 temiz dizin kontrolünü bozuyor.</td>
+        <td>Problar geçici dizinde çalışıyor ve sonunda temizleniyor. <code>.gitignore</code> dosyasına <code>PWNED*</code> eklendi.</td>
+        <td>Düzeltilmemiş kodda m5 sonrası git status temiz</td>
+      </tr>
+      <tr>
+        <td>Bob <code>verify/</code> dosyalarını kendiliğinden okuyor.</td>
+        <td>README ve kılavuza kural eklendi: Bob'u verify'a yönlendirmeyin, FAIL satırını kendiniz okuyun.</td>
+        <td>Metin eklendi</td>
+      </tr>
+      <tr>
+        <td>M2 düzeltmesi M4'ü boşaltıyor.</td>
+        <td>M2 kartına kapsam bölümü, M4 kartına facilitator notu eklendi.</td>
+        <td>Metin eklendi</td>
+      </tr>
+      <tr>
+        <td>Bob <code>.bobignore</code> yazamıyor.</td>
+        <td>M6 kartına eklendi: dosyayı elle oluşturun.</td>
+        <td>Metin eklendi</td>
+      </tr>
+      <tr>
+        <td><code>--max-cost</code> çalışan turu durdurmuyor.</td>
+        <td>M7 kartına keşif noktası eklendi.</td>
+        <td>Metin eklendi</td>
+      </tr>
+      <tr>
+        <td>A5 Semgrep taramasında çıkmıyor.</td>
+        <td>M5 kartına not eklendi.</td>
+        <td>Metin eklendi</td>
+      </tr>
+      <tr>
+        <td>IDE <code>.vscode/</code> bırakıyor. Plan modu da plan dosyası bırakıyor.</td>
+        <td><code>.gitignore</code> dosyasına <code>.vscode/</code> eklendi. M8 kartına not eklendi.</td>
+        <td>Metin eklendi</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2>Kalan öneriler</h2>
+  <ul>
+    <li>Bob IDE'de M1, M3 (Settings), M5 (Findings paneli) ve M6 (onay penceresi) bu testte uzaktan sürülemedi. Bunlar Bob Shell ile aynı modlarla yapıldı. Bu dört anı etkinlikten önce IDE'de bir kez elle denemek gerekir.</li>
+    <li>M8 push ve PR bu testte yapılmadı. Katılımcının kendi kopyasında GitHub push protection, template'teki sahte gizli bilgilere takılır mı, ilk push'ta görülmeli.</li>
+    <li>Tek seferde iyi bir prompt M2'yi, M4'ü ve M5'in bir kısmını birlikte çözebiliyor. Görev kartlarındaki kapsam notları bunu azaltır. Facilitator yine de takip etmeli.</li>
+    <li>3 saatlik programda kesilecek ilk görev M4 olabilir. Bob M2'de kapsamı aşarsa M4 zaten boş kalıyor.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Bobcoin kullanımı</h2>
+  <p>Toplam görev harcaması yaklaşık 10.8 Bobcoin. Görev başına harcama aşağıda. Bir görevde birden çok adım varsa her adım ayrı yazıldı.</p>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Görev</th>
+        <th>Adımlar</th>
+        <th class="num">Bobcoin</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>M0</td><td>Ask modu, plan modu</td><td class="num">0.14 + 0.23</td></tr>
+      <tr><td>M1</td><td>Plan modu, agent modu</td><td class="num">0.42 + 1.04</td></tr>
+      <tr><td>M2</td><td>Teşhis, <code>bob run</code> düzeltmesi</td><td class="num">0.33 + 0.71</td></tr>
+      <tr><td>M3</td><td>İki ayrı harcama</td><td class="num">0.91 + 0.09</td></tr>
+      <tr><td>M4</td><td>QA modu</td><td class="num">2.04</td></tr>
+      <tr><td>M5</td><td>Tarama ve kökten düzeltme</td><td class="num">0.85</td></tr>
+      <tr><td>M6</td><td>Üç ayrı harcama</td><td class="num">0.21 + 0.41 + 0.56</td></tr>
+      <tr><td>M7</td><td>İki farklı sınırla iki çalıştırma</td><td class="num">0.09 + 0.09</td></tr>
+      <tr><td>M8</td><td>Dal ve commit</td><td class="num">0.83</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">En pahalı görev M4 oldu, ama yeni test yazmadı. M7 iki sınırla da aynı tutarı harcadı.</p>
+</section>
+
+</main>
+</body>
+</html>
