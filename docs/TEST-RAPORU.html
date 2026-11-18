@@ -44,18 +44,18 @@
 <header>
   <p class="eyebrow">Facilitator ekibi için</p>
   <h1>Aurora Pay Bobathon test raporu</h1>
-  <p class="meta">Test tarihi: 18 Kasım 2026. Ortam: macOS, Python 3.14, Bob Shell 2.0.6, Bob IDE.</p>
+  <p class="meta">Test tarihi: 18 Kasım 2026. Ortam: macOS, Python 3.14, Bob Shell 2.0.6, Bob IDE 2.3.0.</p>
 </header>
 
 <section>
   <h2>Özet</h2>
-  <p>Laboratuvarı uçtan uca Bob ile test ettim. Repo GitHub template'inden (10 Kasım commit'i) temiz klonlandı ve <code>./setup.sh --scanners</code> ile kuruldu. Kurulum yaklaşık 25 saniye sürdü.</p>
-  <p>Görevleri Bob'a katılımcı gibi, görev kartındaki tarife göre yaptırdım. Bob Shell işleri <code>bob run</code> ile tur ve maliyet sınırı koyarak çalıştırdım. Her adımdan sonra <code>./verify/run.sh mN</code> ile kontrol ettim.</p>
-  <p>Sonuç olumlu. M0 ile M7 doğrulamaları geçti. M8 3/6 kaldı, çünkü push ve PR bilinçli olarak yapılmadı. Bulunan sorunlar Bob'a düzelttirildi ve <code>fix/dryrun-bulgulari</code> dalında duruyor. Dört IDE anı uzaktan sürülemedi, bunlar aşağıda önerilerde.</p>
+  <p>Laboratuvar, GitHub şablonunun 10 Kasım commit’iyle temiz bir klonda test edildi. Ortam <code>./setup.sh --scanners</code> ile kuruldu. Kurulum yaklaşık 25 saniye sürdü.</p>
+  <p>Görevler katılımcı kartlarına göre yürütüldü. Shell turunda <code>bob run</code> için tur ve maliyet sınırları uygulandı. Görev sonuçları <code>./verify/run.sh mN</code> ile kontrol edildi.</p>
+  <p>İlk Shell turunda M0 ile M7 doğrulamaları geçti. Ardından M1, M3, M5 ve M6 Bob IDE’de elle denendi. Ayrı bir özel GitHub reposunda PR açıldı, iki CI kontrolü geçti ve M8 doğrulaması 6/6 tamamlandı. Katılımcı şablonundaki düzeltmeler <code>fix/dryrun-bulgulari</code> dalında. Katılımcı şablonunun <code>main</code> dalı <a href="https://github.com/ilaydagurs/bobathon-aurora-pay-public-push-test">açık test reposuna</a> başarıyla gönderildi.</p>
 </section>
 
 <section>
-  <h2>Görev sonuçları</h2>
+  <h2>İlk Shell turunun görev sonuçları</h2>
   <div class="table-wrap">
   <table>
     <thead>
@@ -128,7 +128,7 @@
         <td>M8</td>
         <td>Dal ve görev başına commit, push ve PR yok</td>
         <td><code>feature/aurora-pay-missions</code> dalında 11 commit attı. Mesajlar İngilizce ve tek cümle. Çalışma dizini temiz. <code>.vscode/</code> ve <code>reports/bob-run.json</code> için <code>.gitignore</code> güncelledi. Block Secrets her commit'i taradı, engel yok.</td>
-        <td>3/6 (push ve PR bilinçli olarak yapılmadı)</td>
+        <td>İlk Shell turunda 3/6. Sonraki GitHub denemesinde 6/6.</td>
         <td class="num">0.83</td>
       </tr>
     </tbody>
@@ -137,7 +137,7 @@
 </section>
 
 <section>
-  <h2>Barış'ın dry run'ında bulunan sorunlar ve düzeltmeleri</h2>
+  <h2>Barış’ın denemesinde yapılan düzeltmeler</h2>
   <p>Dal: <code>bobathon-dryrun-BS</code>. M0 ile M7 bu dalda yeniden çalıştırıldı ve hepsi geçti. M8 ile birlikte 117 kontrol var.</p>
   <div class="table-wrap">
   <table>
@@ -170,8 +170,8 @@
 </section>
 
 <section>
-  <h2>Bu testte bulunan ve Bob'un düzelttiği sorunlar</h2>
-  <p>Dal: <code>fix/dryrun-bulgulari</code>. Her madde Bob düzelttikten sonra ayrıca kontrol edildi.</p>
+  <h2>Katılımcı şablonundaki düzeltmeler</h2>
+  <p>Dal: <code>fix/dryrun-bulgulari</code>. Değişiklikler uygulandıktan sonra kontrol edildi.</p>
   <div class="table-wrap">
   <table>
     <thead>
@@ -208,7 +208,7 @@
         <td>Metin eklendi</td>
       </tr>
       <tr>
-        <td>M2 düzeltmesi M4'ü boşaltıyor.</td>
+        <td>M2 düzeltmesi M4 kapsamına taşabiliyor.</td>
         <td>M2 kartına kapsam bölümü, M4 kartına facilitator notu eklendi.</td>
         <td>Metin eklendi</td>
       </tr>
@@ -232,24 +232,19 @@
         <td><code>.gitignore</code> dosyasına <code>.vscode/</code> eklendi. M8 kartına not eklendi.</td>
         <td>Metin eklendi</td>
       </tr>
+      <tr>
+        <td>M3 özel modu bazen IDE listesinde hemen görünmüyor.</td>
+        <td>M3 kartına <strong>Developer: Reload Window</strong> adımı eklendi.</td>
+        <td>QA Engineer modu pencere yeniden yüklenince göründü.</td>
+      </tr>
     </tbody>
   </table>
   </div>
 </section>
 
 <section>
-  <h2>Kalan öneriler</h2>
-  <ul>
-    <li>Bob IDE'de M1, M3 (Settings), M5 (Findings paneli) ve M6 (onay penceresi) bu testte uzaktan sürülemedi. Bunlar Bob Shell ile aynı modlarla yapıldı. Bu dört anı etkinlikten önce IDE'de bir kez elle denemek gerekir.</li>
-    <li>M8 push ve PR bu testte yapılmadı. Katılımcının kendi kopyasında GitHub push protection, template'teki sahte gizli bilgilere takılır mı, ilk push'ta görülmeli.</li>
-    <li>Tek seferde iyi bir prompt M2'yi, M4'ü ve M5'in bir kısmını birlikte çözebiliyor. Görev kartlarındaki kapsam notları bunu azaltır. Facilitator yine de takip etmeli.</li>
-    <li>3 saatlik programda kesilecek ilk görev M4 olabilir. Bob M2'de kapsamı aşarsa M4 zaten boş kalıyor.</li>
-  </ul>
-</section>
-
-<section>
   <h2>Bobcoin kullanımı</h2>
-  <p>Toplam görev harcaması yaklaşık 10.8 Bobcoin. Görev başına harcama aşağıda. Bir görevde birden çok adım varsa her adım ayrı yazıldı.</p>
+  <p>İlk Shell turunda görevler için yaklaşık 10,8 Bobcoin harcandı.</p>
   <div class="table-wrap">
   <table>
     <thead>
@@ -272,7 +267,62 @@
     </tbody>
   </table>
   </div>
-  <p class="note">En pahalı görev M4 oldu, ama yeni test yazmadı. M7 iki sınırla da aynı tutarı harcadı.</p>
+  <p class="note">En yüksek harcama M4’te kaydedildi. M4 denemesinde yeni test üretilmedi. M7’de iki sınırla da aynı harcama ölçüldü.</p>
+</section>
+
+<section>
+  <h2>IDE’de test edildi</h2>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Görev</th>
+        <th>IDE Gözlemi ve İşlem</th>
+        <th>Doğrulama</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>M1</td>
+        <td>Mod seçici görev başlayınca Permissions yanında göründü. Plan modu PRD ile API sözleşmesindeki çelişkiyi buldu.</td>
+        <td>35/35</td>
+      </tr>
+      <tr>
+        <td>M2 ve M4</td>
+        <td>M2 24/24 geçti. Bob, kapsam talimatına rağmen verify/ dosyalarını taradığını ve doğrulama çıktısıyla iki düzeltme yaptığını bildirdi. M4, M2 sonrasında 4/12 kaldı. Üç gizli hata hâlâ M4’e kalmıştı.</td>
+        <td>M2: 24/24<br>M4: 4/12</td>
+      </tr>
+      <tr>
+        <td>M3</td>
+        <td>QA Engineer modu pencere yeniden yüklenince listelendi. Ayrı denemede fileRegex, kapsam dışı dosya düzenlemesini araç düzeyinde engelledi. Bob’un önerdiği Code modunun IDE’deki karşılığı Agent.</td>
+        <td>Doğrulandı</td>
+      </tr>
+      <tr>
+        <td>M5</td>
+        <td>Findings paneli başlangıçta boştu. /review üzerinden değişiklik incelemesi iki INFO bulgusu üretti. Fix with Bob bir bulguya değişiklik uyguladı ve ardından M1 yine 35/35 geçti. M5 için yerel Semgrep taraması 13 bulgudan sıfıra indi.</td>
+        <td>13/13</td>
+      </tr>
+      <tr>
+        <td>M6</td>
+        <td>Bob SDK’daki gizli talimatı raporladı. .bobignore kuralı varken CSV, @ seçicisiyle sohbet kutusuna eklenebildi. Ek gönderilmeden kaldırıldı. pwd çalıştırma onayı istedi. Bakiye özeti yerelde üretildi.</td>
+        <td>6/6</td>
+      </tr>
+      <tr>
+        <td>M8</td>
+        <td>Kişisel özel repoda Bob, push ve PR için ayrı sohbet onayı istedi. İlk push dalın zaten güncel olduğunu gösterdi. GitHub MCP kimlik doğrulaması başarısız olunca PR #1 gh ile açıldı. GitHub arayüzünde Actions etkinleştirilip PR yeniden açılınca iki CI kontrolü geçti. PR açık kaldı.</td>
+        <td>6/6</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2>Kalan öneriler</h2>
+  <ul>
+    <li>M2 sonrası M4 4/12 kaldı. M2 sırasında görev kapsamını ve Bob’un <code>verify/</code> erişimini takip edin.</li>
+    <li>Üç saatlik akışı süreli provada ölçün. M4’ü kısaltma kararını prova süresine göre verin.</li>
+  </ul>
 </section>
 
 </main>
