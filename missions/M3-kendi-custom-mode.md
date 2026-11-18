@@ -14,6 +14,8 @@ Hedef, **tek bir persona** kurmak: yalnızca test yazan ve çalıştıran bir **
 `.bob/custom_modes.yaml` içinde yeni bir mod tanımlayın (bir mod tanımı, sıfırdan **sizin** yazdığınız bir persona):
 test yazar ve çalıştırır, ama **`tests/` dışındaki hiçbir dosyayı değiştiremez**. Modu seçip üretim koduna yazdırmayı deneyin: engellenmeli.
 
+> **Mod listede görünmüyorsa pencereyi yeniden yükleyin.** Dosyayı kaydettikten sonra Bob IDE modu her zaman kendiliğinden görmez. `Cmd+Shift+P` ile komut paletini açın, **Developer: Reload Window** yazıp Enter'a basın. Mod, Bob Settings > Modes listesinde **Workspace** kapsamıyla ve sohbet kutusunun altındaki mod seçicide görünür. Yeniden yüklemeden sonra da yoksa YAML'da sessiz bir hata vardır: `./verify/run.sh m3` çıktısına bakın.
+
 ## Hamle 2 - Kurallar ve skill
 
 Modun iki şeyi kendiliğinden bilmesini sağlayın:
