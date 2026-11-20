@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Aurora Pay - gorev dogrulayici.
+"""Aurora Pay - gorev dogrulayici (Windows, macOS, Linux).
 
 Kullanim (repo kokunden):
-    ./verify/run.sh m1        tek gorev
-    ./verify/run.sh all       tum gorevler (ozet tablo)
+    python3 verify/run.py m1        tek gorev   (Windows: py verify/run.py m1)
+    python3 verify/run.py all       tum gorevler (ozet tablo)
 
+Sanal ortami (.venv) elle etkinlestirmeniz gerekmez; varsa betik kendisi onu kullanir.
 Dogrulayici Bob'a ne yazdiginiza bakmaz; yalnizca SONUCA bakar.
 """
 
@@ -12,13 +13,39 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 import sys
 import time
 from pathlib import Path
 
-import pytest
-
 ROOT = Path(__file__).resolve().parents[1]
+
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError):
+        pass
+
+
+def _relaunch_in_venv() -> None:
+    """Sanal ortam varsa ve biz onun disindaysak, ayni komutu .venv Python'u ile yeniden calistir."""
+    sub = "Scripts/python.exe" if os.name == "nt" else "bin/python"
+    venv_python = ROOT / ".venv" / sub
+    if venv_python.exists() and Path(sys.prefix).resolve() != (ROOT / ".venv").resolve():
+        sys.exit(subprocess.call([str(venv_python), str(Path(__file__).resolve()), *sys.argv[1:]]))
+
+
+_relaunch_in_venv()
+
+try:
+    import pytest
+except ImportError:
+    print("pytest bulunamadi. Once kurulumu calistirin:  python3 setup.py --scanners  (Windows: py setup.py --scanners)")
+    sys.exit(2)
+
+if os.name == "nt":
+    os.system("")  # Windows konsolunda ANSI renklerini etkinlestirir
+
 MISSIONS = {
     "m0": ("M0 Kurulum", "test_m0_setup.py"),
     "m1": ("M1 Dokumandan koda", "test_m1_limits.py"),
@@ -99,7 +126,7 @@ def run_mission(key: str) -> dict:
 
 def main(argv: list[str]) -> int:
     if len(argv) != 1 or (argv[0] != "all" and argv[0] not in MISSIONS):
-        print("Kullanim: ./verify/run.sh [m0|m1|m2|m3|m4|m5|m6|m7|m8|all]")
+        print("Kullanim: python3 verify/run.py [m0|m1|m2|m3|m4|m5|m6|m7|m8|all]  (Windows: py verify/run.py ...)")
         return 2
     keys = list(MISSIONS) if argv[0] == "all" else [argv[0]]
     results = [run_mission(k) for k in keys]

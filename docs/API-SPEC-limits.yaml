@@ -90,7 +90,7 @@ components:
       type: object
       required: [daily_limit, per_transfer_limit]
       properties:
-        daily_limit: { type: string, description: "> 0, en fazla 2 ondalık" }
+        daily_limit: { type: string, description: "> 0, en fazla 2 ondalık. Ondalık kısım yazılmayabilir: \"1000\" geçerlidir ve yanıtta \"1000.00\" döner" }
         per_transfer_limit: { type: string, description: "> 0, <= daily_limit" }
     Limits:
       type: object
@@ -103,7 +103,7 @@ components:
       type: object
       required: [amount, occurred_on]
       properties:
-        amount: { type: string, description: "> 0, en fazla 2 ondalık" }
+        amount: { type: string, description: "> 0, en fazla 2 ondalık. Ondalık kısım yazılmayabilir: \"10\" geçerlidir" }
         occurred_on: { type: string, format: date }
         description: { type: string, nullable: true }
     Decision:

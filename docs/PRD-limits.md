@@ -44,6 +44,7 @@ Henüz hiç kod yoktur. Bu doküman ve `API-SPEC-limits.yaml` tek kaynaktır.
 ## 5. Biçim kuralları
 
 - Para tutarları API'de **string** olarak taşınır ve yanıtta **her zaman tam 2 ondalıkla** döner (`"1500.00"`). Hesaplamada `float` kullanılmaz.
+  İstekte tutar en fazla 2 ondalıklı olabilir: `"1000"`, `"1000.5"` ve `"1000.50"` geçerlidir (200 döner), `"100.123"` geçersizdir (422).
 - Tarihler `YYYY-MM-DD` biçimindedir.
 - Tüm hatalar tek bir **hata zarfı** ile döner:
 
@@ -56,7 +57,7 @@ Henüz hiç kod yoktur. Bu doküman ve `API-SPEC-limits.yaml` tek kaynaktır.
 
 ## 6. Kabul kriterleri
 
-- `API-SPEC-limits.yaml`'daki tüm uç noktalar çalışır.
+- `API-SPEC-limits.yaml`'daki tüm endpoint'ler çalışır.
 - Yukarıdaki iş kuralları örnek senaryolarla doğrulanabilir.
 - Servis `services/limits/main.py` içinde, `app` adlı bir FastAPI uygulaması olarak sunulur.
 

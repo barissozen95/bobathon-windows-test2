@@ -20,7 +20,10 @@ def _json_documents(text: str):
 def test_bounded_run_output_saved():
     """reports/bob-run.json: 'bob run --format json' ciktisi gecerli JSON"""
     assert RUN_JSON.exists(), "reports/bob-run.json yok -> bob run --format json ... > reports/bob-run.json"
-    text = RUN_JSON.read_text(encoding="utf-8", errors="replace").strip()
+    raw = RUN_JSON.read_bytes()
+    # Windows PowerShell '>' yonlendirmesi UTF-16 yazabilir; UTF-8 BOM'u da kabul et.
+    encoding = "utf-16" if raw.startswith((b"\xff\xfe", b"\xfe\xff")) else "utf-8-sig"
+    text = raw.decode(encoding, errors="replace").strip()
     assert len(text) >= 50, "cikti cok kisa; bob run gercekten calisti mi?"
     try:
         docs = _json_documents(text)

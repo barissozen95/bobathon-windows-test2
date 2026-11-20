@@ -25,7 +25,8 @@ def run(cmd: list[str], cwd: Path | None = None, timeout: int = 120, env: dict |
     if env:
         full_env.update(env)
     return subprocess.run(
-        cmd, cwd=cwd or ROOT, capture_output=True, text=True, timeout=timeout, check=False, env=full_env
+        cmd, cwd=cwd or ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace",
+        timeout=timeout, check=False, env=full_env,
     )
 
 

@@ -1,6 +1,7 @@
 """M5 - Bob Findings: SEC-317 A (koda ve altyapiya dair bulgular). Semgrep + Bob Findings paneli."""
 
 import re
+import sys
 
 import pytest
 from common import ROOT, SECRET_VALUES, read_text, run, source_files
@@ -23,13 +24,13 @@ def client():
 
 
 def test_semgrep_reports_zero_findings():
-    """Semgrep taramasi 0 bulgu veriyor (./scripts/scan.sh)"""
-    scan = ROOT / "scripts" / "scan.sh"
-    result = run(["bash", str(scan)])
+    """Semgrep taramasi 0 bulgu veriyor (scripts/scan.py)"""
+    scan = ROOT / "scripts" / "scan.py"
+    result = run([sys.executable, str(scan)])
     if result.returncode == 2:
-        pytest.fail("semgrep calistirilamadi -> ./setup.sh --scanners", pytrace=False)
+        pytest.fail("semgrep calistirilamadi -> python3 setup.py --scanners  (Windows: py setup.py --scanners)", pytrace=False)
     count = re.search(r"bulgu sayisi:\s*(\d+)", result.stdout)
-    assert result.returncode == 0, f"{count.group(1) if count else '?'} bulgu kaldi -> ./scripts/scan.sh --verbose"
+    assert result.returncode == 0, f"{count.group(1) if count else '?'} bulgu kaldi -> python3 scripts/scan.py --verbose"
 
 
 def test_no_nosemgrep_suppressions():
@@ -78,17 +79,15 @@ def test_sql_injection_is_closed(client):
 
 
 @pytest.mark.parametrize("filename", ["x; touch PWNED", "$(touch PWNED)", "../../etc/evil", "a b"])
-def test_command_injection_and_traversal_are_closed(client, filename, tmp_path):
+def test_command_injection_and_traversal_are_closed(client, filename, tmp_path, monkeypatch):
     """Komut enjeksiyonu ve yol gezintisi kapali (gecersiz dosya adi reddedilir)"""
-    marker = ROOT / "PWNED"
-    marker.unlink(missing_ok=True)
+    # Saldiri denemesi gecici bir dizinde calisir; repoda PWNED gibi artik birakmaz.
+    monkeypatch.chdir(tmp_path)
+    marker = tmp_path / "PWNED"
     response = client.post("/reports/archive", json={"filename": filename})
-    try:
-        assert not marker.exists(), "komut calisti: PWNED dosyasi olustu"
-        assert response.status_code == 422, f"gecersiz dosya adi 422 ile reddedilmeli, {response.status_code} geldi"
-        assert response.json().get("error", {}).get("code") == "VALIDATION_ERROR"
-    finally:
-        marker.unlink(missing_ok=True)
+    assert not marker.exists(), "komut calisti: PWNED dosyasi olustu"
+    assert response.status_code == 422, f"gecersiz dosya adi 422 ile reddedilmeli, {response.status_code} geldi"
+    assert response.json().get("error", {}).get("code") == "VALIDATION_ERROR"
 
 
 def test_archive_still_works_for_valid_name(client):

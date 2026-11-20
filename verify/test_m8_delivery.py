@@ -26,7 +26,10 @@ def test_work_is_on_a_feature_branch():
     """Calisma main'de degil, feature/ veya fix/ dalinda"""
     branch = _branch()
     assert branch not in BASE_BRANCHES, f"main dalindasiniz; 'feature/...' veya 'fix/...' dali acin (su an: {branch})"
-    assert re.match(r"^(feature|fix)/[a-z0-9][a-z0-9._-]*$", branch), f"dal adi 'feature/<kisa-ad>' veya 'fix/<kisa-ad>' olmali (su an: {branch})"
+    assert re.match(r"^(feature|fix)/[a-z0-9][a-z0-9._-]*$", branch), (
+        f"dal adi 'feature/<kisa-ad>' veya 'fix/<kisa-ad>' olmali (su an: {branch}). "
+        "M0 sonunda acmaniz onerilen dal: git switch -c feature/<kisa-ad>  (calisma kaybolmaz, yeniden adlandirmak icin: git branch -m feature/<kisa-ad>)"
+    )
 
 
 def test_work_tree_is_clean():

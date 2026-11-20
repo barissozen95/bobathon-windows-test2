@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aurora Pay | Bobathon arayüzü</title>
+<style>
+  :root{--navy:#0b1230;--ink:#1c2333;--muted:#5b6478;--line:#e2e6ee;--bg:#f4f6fb;--card:#fff;--teal:#14b8a6;--violet:#6d5bd0;--ok:#157a4a;--okbg:#e4f6ec;--bad:#b3261e;--badbg:#fdeceb;--warn:#8a5a00;--warnbg:#fff4d6}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 -apple-system,"Segoe UI",system-ui,sans-serif}
+  header{background:var(--navy);color:#e8ecfa;padding:14px 24px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;border-bottom:3px solid var(--teal)}
+  .logo{font-size:20px;font-weight:700;letter-spacing:.02em}
+  .logo span{color:var(--teal)}
+  header .sub{color:#9aa6cf;font-size:12.5px}
+  .pills{margin-left:auto;display:flex;gap:8px}
+  .pill{font-size:12px;padding:3px 10px;border-radius:12px;background:#1b2550;color:#c6cfee}
+  .pill i{display:inline-block;width:8px;height:8px;border-radius:50%;background:#7a839f;margin-right:6px}
+  .pill.up i{background:#34d399}
+  .pill.down i{background:#f87171}
+  .wrap{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:18px;padding:18px 24px;max-width:1500px;margin:0 auto}
+  @media(max-width:1000px){.wrap{grid-template-columns:1fr}}
+  nav{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:14px}
+  nav button{border:1px solid var(--line);background:#fff;padding:8px 14px;border-radius:6px;font:inherit;cursor:pointer;color:var(--muted)}
+  nav button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+  section.tab{display:none}
+  section.tab.on{display:block}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-bottom:14px}
+  .card h3{margin:0 0 4px;font-size:15px}
+  .card p.hint{margin:0 0 10px;color:var(--muted);font-size:13px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px}
+  label{display:flex;flex-direction:column;font-size:12px;color:var(--muted);gap:3px}
+  input{font:inherit;padding:6px 8px;border:1px solid #c9d0de;border-radius:5px;min-width:110px;color:var(--ink)}
+  input.wide{min-width:200px}
+  button.btn{font:inherit;padding:7px 14px;border-radius:6px;border:1px solid var(--violet);background:var(--violet);color:#fff;cursor:pointer}
+  button.btn.alt{background:#fff;color:var(--violet)}
+  button.btn:disabled{opacity:.5;cursor:wait}
+  .acc{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+  .acct{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:linear-gradient(135deg,#fff,#f0fbf9)}
+  .acct b{font-size:12px;color:var(--muted);letter-spacing:.04em}
+  .acct .bal{font-size:22px;font-weight:700;margin:2px 0}
+  .acct small{display:block;color:var(--muted);word-break:break-all}
+  pre.out{margin:8px 0 0;background:#0f1630;color:#d6def7;padding:10px 12px;border-radius:6px;overflow:auto;max-height:240px;font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-word}
+  .banner{background:var(--warnbg);color:var(--warn);border:1px solid #f0d78a;padding:8px 12px;border-radius:6px;margin-bottom:12px;font-size:13px}
+  table{border-collapse:collapse;width:100%}
+  td,th{text-align:left;padding:8px 8px 8px 0;border-bottom:1px solid var(--line);vertical-align:top;font-size:13px}
+  th{color:var(--muted);font-weight:600}
+  .tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:10px;background:#ece9fb;color:var(--violet);font-weight:600}
+  .badge{display:inline-block;font-size:12px;padding:2px 9px;border-radius:10px;font-weight:600;background:#eceff5;color:var(--muted)}
+  .badge.ok{background:var(--okbg);color:var(--ok)}
+  .badge.bad{background:var(--badbg);color:var(--bad)}
+  .badge.down{background:var(--warnbg);color:var(--warn)}
+  .detail{color:var(--muted);font-size:12px;display:block;margin-top:2px}
+  aside h2{font-size:14px;margin:0 0 8px;display:flex;justify-content:space-between;align-items:center}
+  aside h2 button{font:inherit;font-size:12px;border:0;background:none;color:var(--violet);cursor:pointer}
+  #log{max-height:calc(100vh - 140px);overflow:auto}
+  .entry{border:1px solid var(--line);background:#fff;border-radius:6px;margin-bottom:8px;padding:6px 10px;font-size:12.5px}
+  .entry .top{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .st{font-weight:700;padding:0 6px;border-radius:4px}
+  .st.s2{background:var(--okbg);color:var(--ok)}
+  .st.s4{background:var(--warnbg);color:var(--warn)}
+  .st.s5{background:var(--badbg);color:var(--bad)}
+  .entry code{font:12px ui-monospace,Menlo,Consolas,monospace}
+  .entry pre{margin:6px 0 0;font:11.5px/1.45 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-word;background:#f4f6fb;padding:6px 8px;border-radius:4px;max-height:160px;overflow:auto}
+  .muted{color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Aurora <span>Pay</span></div>
+  <div class="sub">Instant Pay · Bobathon arayüzü. Bob'un yaptığı değişiklikleri burada görün.</div>
+  <div class="pills">
+    <div class="pill" id="pill-core"><i></i>Core :8000</div>
+    <div class="pill" id="pill-limits"><i></i>Limits :8001</div>
+  </div>
+</header>
+
+<div class="wrap">
+<main>
+  <nav id="nav"></nav>
+
+  <!-- HESAPLAR VE TRANSFER -->
+  <section class="tab" id="tab-core">
+    <div class="card">
+      <h3>Hesap oluştur</h3>
+      <p class="hint">Aurora Core: <code>POST /accounts</code>. Hızlı başlamak için demo hesapları kullanın.</p>
+      <div class="row">
+        <label>Hesap no<input id="a-id" value="A"></label>
+        <label>Sahibi<input id="a-owner" class="wide" value="Ayşe Demir"></label>
+        <label>IBAN<input id="a-iban" class="wide" value="TR000000000000000000000001"></label>
+        <label>Bakiye<input id="a-bal" value="1000"></label>
+        <button class="btn" id="a-create">Oluştur</button>
+        <button class="btn alt" id="a-demo">Demo hesapları ekle (A ve B)</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Hesaplarım</h3>
+      <p class="hint">Bu sayfada oluşturduğunuz hesapların güncel bakiyesi. Servis kod değişikliğiyle yenilenirse bellekteki hesaplar silinir, o zaman yeniden oluşturun.</p>
+      <div class="acc" id="accounts"></div>
+      <div class="row" style="margin-top:10px"><button class="btn alt" id="a-refresh">Bakiyeleri yenile</button></div>
+    </div>
+
+    <div class="card">
+      <h3>Para transferi</h3>
+      <p class="hint"><code>POST /transfers</code>. Çift borçlandırma (M2) için "Aynı isteği iki kez gönder" düğmesini deneyin.</p>
+      <div class="row">
+        <label>Gönderen<input id="t-from" value="A"></label>
+        <label>Alıcı<input id="t-to" value="B"></label>
+        <label>Tutar<input id="t-amount" value="100"></label>
+        <label>Idempotency-Key (isteğe bağlı)<input id="t-key" class="wide" placeholder="ör. odeme-001"></label>
+      </div>
+      <div class="row">
+        <button class="btn" id="t-send">Gönder</button>
+        <button class="btn alt" id="t-twice">Aynı isteği iki kez gönder</button>
+      </div>
+      <pre class="out" id="t-out">Henüz istek yok.</pre>
+    </div>
+  </section>
+
+  <!-- RAPORLAR -->
+  <section class="tab" id="tab-reports">
+    <div class="card">
+      <h3>Transfer raporu</h3>
+      <p class="hint"><code>GET /reports/transfers?owner=...</code> (M5: SQL injection)</p>
+      <div class="row">
+        <label>Hesap sahibi<input id="r-owner" class="wide" value="Ayşe Demir"></label>
+        <button class="btn" id="r-run">Sorgula</button>
+        <button class="btn alt" id="r-inject">Enjeksiyon dene: x' OR '1'='1</button>
+      </div>
+      <pre class="out" id="r-out">Henüz istek yok.</pre>
+    </div>
+    <div class="card">
+      <h3>Ekstre arşivi</h3>
+      <p class="hint"><code>POST /reports/archive</code> (M5: komut enjeksiyonu ve yol gezintisi). Geçerli ad: <code>q1-2025</code>.</p>
+      <div class="row">
+        <label>Dosya adı<input id="z-name" class="wide" value="q1-2025"></label>
+        <button class="btn" id="z-run">Arşivle</button>
+        <button class="btn alt" id="z-bad">Yol gezintisi dene: ../../etc/evil</button>
+      </div>
+      <pre class="out" id="z-out">Henüz istek yok.</pre>
+    </div>
+  </section>
+
+  <!-- LIMITLER -->
+  <section class="tab" id="tab-limits">
+    <div class="banner" id="limits-banner">Limits servisi henüz çalışmıyor. M1'de <code>services/limits/main.py</code> dosyası oluşunca otomatik başlar.</div>
+    <div class="card">
+      <h3>Müşteri limitleri</h3>
+      <p class="hint"><code>PUT</code> ve <code>GET /limits/{customer_id}</code></p>
+      <div class="row">
+        <label>Müşteri no<input id="l-cid" value="C004217"></label>
+        <label>Günlük limit<input id="l-daily" value="5000.00"></label>
+        <label>İşlem başı limit<input id="l-per" value="2000.00"></label>
+        <button class="btn" id="l-put">Limit tanımla</button>
+        <button class="btn alt" id="l-get">Limitleri getir</button>
+      </div>
+      <pre class="out" id="l-out">Henüz istek yok.</pre>
+    </div>
+    <div class="card">
+      <h3>İşlem yetkilendirme</h3>
+      <p class="hint"><code>POST /limits/{customer_id}/authorize</code>. PRD'deki örnek senaryoyu sırayla deneyin.</p>
+      <div class="row">
+        <label>Tutar<input id="x-amount" value="1500.00"></label>
+        <label>Tarih<input id="x-date" value="2025-03-14"></label>
+        <label>Açıklama<input id="x-desc" value="kira"></label>
+        <button class="btn" id="x-run">Yetkilendir</button>
+      </div>
+      <pre class="out" id="x-out">Henüz istek yok.</pre>
+    </div>
+    <div class="card">
+      <h3>İşlem dökümü</h3>
+      <p class="hint"><code>GET /statements/{customer_id}?from=...&amp;to=...</code></p>
+      <div class="row">
+        <label>Başlangıç<input id="s-from" value="2025-03-13"></label>
+        <label>Bitiş<input id="s-to" value="2025-03-15"></label>
+        <button class="btn" id="s-run">Dökümü getir</button>
+      </div>
+      <pre class="out" id="s-out">Henüz istek yok.</pre>
+    </div>
+  </section>
+
+  <!-- SENARYOLAR -->
+  <section class="tab" id="tab-checks">
+    <div class="card">
+      <h3>Değişiklik kontrolü</h3>
+      <p class="hint">Çalışan servislere gerçek istekler gönderir. Bob kodu değiştirdikten sonra tekrar çalıştırın: "Henüz değil" olan satırlar "Düzeltildi" olmalı. Loglarda kişisel veri olup olmadığını (M2, M4) sunucuyu başlattığınız terminalden izleyin.</p>
+      <div class="row"><button class="btn" id="c-all">Tümünü çalıştır</button></div>
+      <table>
+        <thead><tr><th>Görev</th><th>Kontrol</th><th>Durum</th><th></th></tr></thead>
+        <tbody id="c-body"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<aside>
+  <h2>İstek günlüğü <button id="log-clear">Temizle</button></h2>
+  <div id="log"><p class="muted">Yaptığınız her istek ve servisin ham yanıtı burada görünür. Hata zarfı, 500 yanıtları ve kuruş farkları buradan okunur.</p></div>
+</aside>
+</div>
+
+<script>
+(function () {
+  var $ = function (s) { return document.querySelector(s); };
+
+  function h(tag, props) {
+    var el = document.createElement(tag);
+    Object.keys(props || {}).forEach(function (k) {
+      if (k === 'class') el.className = props[k];
+      else if (k.indexOf('on') === 0) el.addEventListener(k.slice(2), props[k]);
+      else el.setAttribute(k, props[k]);
+    });
+    Array.prototype.slice.call(arguments, 2).forEach(function (kid) {
+      if (kid == null) return;
+      el.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+    });
+    return el;
+  }
+
+  function rid() { return Math.random().toString(36).slice(2, 7).toUpperCase(); }
+  function pretty(text) {
+    try { return JSON.stringify(JSON.parse(text), null, 2); } catch (e) { return text; }
+  }
+
+  /* ---------- API ve günlük ---------- */
+  function addLog(r) {
+    var log = $('#log');
+    if (log.firstElementChild && log.firstElementChild.tagName === 'P') log.innerHTML = '';
+    var cls = r.status >= 500 || r.status === 0 ? 's5' : r.status >= 400 ? 's4' : 's2';
+    var entry = h('div', { class: 'entry' },
+      h('div', { class: 'top' },
+        h('span', { class: 'st ' + cls }, r.status || 'HATA'),
+        h('code', {}, r.method + ' /' + r.service + r.path),
+        h('span', { class: 'muted' }, r.ms + ' ms')),
+      r.body !== undefined ? h('pre', {}, 'İstek: ' + JSON.stringify(r.body)) : null,
+      h('pre', {}, r.text || '(boş yanıt)'));
+    log.prepend(entry);
+    while (log.children.length > 60) log.lastElementChild.remove();
+  }
+
+  function api(service, method, path, body, headers, quiet) {
+    var t0 = performance.now();
+    var hdr = Object.assign({}, headers || {});
+    if (body !== undefined) hdr['Content-Type'] = 'application/json';
+    return fetch('/api/' + service + path, {
+      method: method, headers: hdr, body: body !== undefined ? JSON.stringify(body) : undefined
+    }).then(function (resp) {
+      return resp.text().then(function (text) { return { status: resp.status, text: text }; });
+    }).catch(function (e) {
+      return { status: 0, text: String(e) };
+    }).then(function (raw) {
+      var json; try { json = JSON.parse(raw.text); } catch (e) { json = undefined; }
+      var res = { service: service, method: method, path: path, body: body, status: raw.status, text: raw.text,
+                  json: json, ms: Math.round(performance.now() - t0),
+                  down: raw.status === 502 && json && json.proxy_error };
+      if (!quiet) addLog(res);
+      return res;
+    });
+  }
+
+  function show(sel, res) {
+    $(sel).textContent = res.status + ' ' + (res.down ? '(servis çalışmıyor)' : '') + '\n' + pretty(res.text);
+  }
+  function busy(btn, fn) {
+    btn.addEventListener('click', function () {
+      btn.disabled = true;
+      Promise.resolve(fn()).catch(function (e) { console.error(e); }).then(function () { btn.disabled = false; });
+    });
+  }
+
+  /* ---------- Sekmeler ---------- */
+  var TABS = [['core', 'Hesaplar ve transfer'], ['reports', 'Raporlar'], ['limits', 'Limitler (M1)'], ['checks', 'Değişiklik kontrolü']];
+  TABS.forEach(function (t, i) {
+    var b = h('button', { 'data-tab': t[0] }, t[1]);
+    b.addEventListener('click', function () { openTab(t[0]); });
+    $('#nav').append(b);
+  });
+  function openTab(name) {
+    document.querySelectorAll('nav button').forEach(function (b) { b.classList.toggle('on', b.dataset.tab === name); });
+    document.querySelectorAll('section.tab').forEach(function (s) { s.classList.toggle('on', s.id === 'tab-' + name); });
+    try { localStorage.setItem('aurora-ui-tab', name); } catch (e) {}
+  }
+  var saved = null; try { saved = localStorage.getItem('aurora-ui-tab'); } catch (e) {}
+  openTab(saved || 'core');
+
+  /* ---------- Servis durumu ---------- */
+  function poll() {
+    fetch('/api/status').then(function (r) { return r.json(); }).then(function (s) {
+      ['core', 'limits'].forEach(function (n) {
+        var p = $('#pill-' + n);
+        p.classList.toggle('up', !!s[n]); p.classList.toggle('down', !s[n]);
+      });
+      $('#limits-banner').style.display = s.limits ? 'none' : 'block';
+    }).catch(function () {
+      ['core', 'limits'].forEach(function (n) { var p = $('#pill-' + n); p.classList.remove('up'); p.classList.add('down'); });
+    });
+  }
+  poll(); setInterval(poll, 3000);
+
+  /* ---------- Hesaplar ---------- */
+  var KEY = 'aurora-ui-accounts';
+  function ids() { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { return []; } }
+  function remember(id) { var l = ids(); if (l.indexOf(id) < 0) { l.push(id); localStorage.setItem(KEY, JSON.stringify(l)); } }
+
+  function createAccount(id, owner, iban, balance) {
+    return api('core', 'POST', '/accounts', { id: id, owner_name: owner, iban: iban, balance: Number(balance) })
+      .then(function (r) { if (r.status === 201 || r.status === 200) remember(id); return r; });
+  }
+
+  function refreshAccounts() {
+    var box = $('#accounts'); box.innerHTML = '';
+    return Promise.all(ids().map(function (id) {
+      return api('core', 'GET', '/accounts/' + encodeURIComponent(id), undefined, undefined, true).then(function (r) {
+        if (r.status === 200 && r.json) {
+          box.append(h('div', { class: 'acct' }, h('b', {}, 'HESAP ' + r.json.id),
+            h('div', { class: 'bal' }, String(r.json.balance) + ' ' + (r.json.currency || 'TRY')),
+            h('small', {}, r.json.owner_name), h('small', {}, r.json.iban)));
+        } else {
+          box.append(h('div', { class: 'acct' }, h('b', {}, 'HESAP ' + id), h('small', {}, 'bulunamadı (servis yenilenmiş olabilir)')));
+        }
+      });
+    }));
+  }
+
+  busy($('#a-create'), function () {
+    return createAccount($('#a-id').value, $('#a-owner').value, $('#a-iban').value, $('#a-bal').value).then(refreshAccounts);
+  });
+  busy($('#a-demo'), function () {
+    return createAccount('A', 'Ayşe Demir', 'TR000000000000000000000001', 1000)
+      .then(function () { return createAccount('B', 'Mehmet Kaya', 'TR000000000000000000000002', 0); })
+      .then(refreshAccounts);
+  });
+  busy($('#a-refresh'), refreshAccounts);
+
+  function transferBody() {
+    return { from_account: $('#t-from').value, to_account: $('#t-to').value, amount: Number($('#t-amount').value) };
+  }
+  function send(body, key) {
+    return api('core', 'POST', '/transfers', body, key ? { 'Idempotency-Key': key } : {});
+  }
+  busy($('#t-send'), function () {
+    return send(transferBody(), $('#t-key').value).then(function (r) { show('#t-out', r); return refreshAccounts(); });
+  });
+  busy($('#t-twice'), function () {
+    var key = $('#t-key').value || ('demo-' + rid()); $('#t-key').value = key;
+    var body = transferBody();
+    return send(body, key).then(function (r1) {
+      return send(body, key).then(function (r2) {
+        $('#t-out').textContent = '1. istek: ' + r1.status + '\n' + pretty(r1.text) + '\n\n2. istek: ' + r2.status + '\n' + pretty(r2.text) +
+          '\n\nAynı anahtarla gelen ikinci istek yeni işlem oluşturmamalı: iki yanıtta da aynı id olmalı.';
+        return refreshAccounts();
+      });
+    });
+  });
+
+  /* ---------- Raporlar ---------- */
+  function ownerQuery(v) { return api('core', 'GET', '/reports/transfers?owner=' + encodeURIComponent(v)).then(function (r) { show('#r-out', r); }); }
+  busy($('#r-run'), function () { return ownerQuery($('#r-owner').value); });
+  busy($('#r-inject'), function () { return ownerQuery("x' OR '1'='1"); });
+  function archive(v) { return api('core', 'POST', '/reports/archive', { filename: v }).then(function (r) { show('#z-out', r); }); }
+  busy($('#z-run'), function () { return archive($('#z-name').value); });
+  busy($('#z-bad'), function () { return archive('../../etc/evil'); });
+
+  /* ---------- Limitler ---------- */
+  function cid() { return encodeURIComponent($('#l-cid').value); }
+  busy($('#l-put'), function () {
+    return api('limits', 'PUT', '/limits/' + cid(), { daily_limit: $('#l-daily').value, per_transfer_limit: $('#l-per').value }).then(function (r) { show('#l-out', r); });
+  });
+  busy($('#l-get'), function () { return api('limits', 'GET', '/limits/' + cid()).then(function (r) { show('#l-out', r); }); });
+  busy($('#x-run'), function () {
+    var body = { amount: $('#x-amount').value, occurred_on: $('#x-date').value };
+    if ($('#x-desc').value) body.description = $('#x-desc').value;
+    return api('limits', 'POST', '/limits/' + cid() + '/authorize', body).then(function (r) { show('#x-out', r); });
+  });
+  busy($('#s-run'), function () {
+    var q = '?from=' + encodeURIComponent($('#s-from').value) + '&to=' + encodeURIComponent($('#s-to').value);
+    return api('limits', 'GET', '/statements/' + cid() + q).then(function (r) { show('#s-out', r); });
+  });
+
+  /* ---------- Değişiklik kontrolleri ---------- */
+  function mk(id, owner, bal) {
+    return api('core', 'POST', '/accounts', { id: id, owner_name: owner, iban: 'TR' + rid() + rid() + rid(), balance: bal });
+  }
+  function balanceOf(id) {
+    return api('core', 'GET', '/accounts/' + id, undefined, undefined, true).then(function (r) { return r.json ? r.json.balance : undefined; });
+  }
+  function result(ok, detail, res) { return { ok: ok, detail: detail, down: !!(res && res.down) }; }
+
+  var CHECKS = [
+    { task: 'M2', title: 'Aynı Idempotency-Key ile iki istek tek borçlandırma yapar', run: function () {
+      var a = 'A' + rid(), b = 'B' + rid(), key = 'k-' + rid(), body = { from_account: a, to_account: b, amount: 100 };
+      return mk(a, 'Test A', 1000).then(function () { return mk(b, 'Test B', 0); })
+        .then(function () { return send(body, key); }).then(function (r1) {
+          return send(body, key).then(function (r2) {
+            return balanceOf(b).then(function (bal) {
+              var ok = r1.status === 201 && (r2.status === 200 || r2.status === 201) && r1.json && r2.json && r1.json.id === r2.json.id && Number(bal) === 100;
+              return result(ok, 'Alıcı bakiyesi: ' + bal + ' (beklenen 100)', r1);
+            });
+          });
+        });
+    } },
+    { task: 'M2', title: 'Bilinmeyen alıcıda 404 döner ve gönderenin parası düşmez', run: function () {
+      var a = 'A' + rid();
+      return mk(a, 'Test A', 1000).then(function () { return send({ from_account: a, to_account: 'YOK-' + rid(), amount: 100 }); }).then(function (r) {
+        return balanceOf(a).then(function (bal) { return result(r.status === 404 && Number(bal) === 1000, 'Durum ' + r.status + ', gönderen bakiyesi ' + bal + ' (beklenen 404 ve 1000)', r); });
+      });
+    } },
+    { task: 'M2', title: 'Para kuruş hassasiyetinde ve ücret politikasına uygun', run: function () {
+      var a = 'A' + rid(), b = 'B' + rid();
+      return mk(a, 'Test A', 100.10).then(function () { return mk(b, 'Test B', 0); })
+        .then(function () { return send({ from_account: a, to_account: b, amount: 10.10 }); })
+        .then(function () { return balanceOf(a); }).then(function (bal) {
+          var c = 'C' + rid();
+          return mk(c, 'Test C', 10000).then(function () { return send({ from_account: c, to_account: b, amount: 3 }); }).then(function (f3) {
+            return send({ from_account: c, to_account: b, amount: 1000 }).then(function (f1000) {
+              var fee3 = f3.json ? String(Number(f3.json.fee)) : '?', fee1000 = f1000.json ? String(Number(f1000.json.fee)) : '?';
+              var ok = String(bal) === '89.95' && fee3 === '0.02' && fee1000 === '2.5';
+              return result(ok, 'Bakiye ' + bal + ' (beklenen 89.95), ücret 3 TL için ' + fee3 + ' (0.02), 1000 TL için ' + fee1000 + ' (2.5)', f3);
+            });
+          });
+        });
+    } },
+    { task: 'M2', title: 'Hatalar hata zarfı ve doğru durum koduyla döner', run: function () {
+      var a = 'A' + rid(), b = 'B' + rid();
+      return mk(a, 'Test A', 50).then(function () { return mk(b, 'Test B', 0); }).then(function () {
+        var cases = [
+          [{ from_account: a, to_account: b, amount: 500 }, 409, 'INSUFFICIENT_FUNDS'],
+          [{ from_account: a, to_account: b, amount: -5 }, 422, 'VALIDATION_ERROR'],
+          [{ from_account: a }, 422, 'VALIDATION_ERROR'],
+          [{ from_account: 'YOK-' + rid(), to_account: b, amount: 1 }, 404, 'ACCOUNT_NOT_FOUND']
+        ];
+        var bad = [], last;
+        return cases.reduce(function (p, c, i) {
+          return p.then(function () { return send(c[0]).then(function (r) {
+            last = r;
+            var code = r.json && r.json.error ? r.json.error.code : '-';
+            if (r.status !== c[1] || code !== c[2]) bad.push((i + 1) + '. durum ' + r.status + '/' + code + ' (beklenen ' + c[1] + '/' + c[2] + ')');
+          }); });
+        }, Promise.resolve()).then(function () { return result(bad.length === 0, bad.length ? bad.join('; ') : '4 durumun hepsi doğru', last); });
+      });
+    } },
+    { task: 'M4', title: 'Negatif bakiye 422, aynı id ile ikinci hesap 409, aynı hesaba transfer 422', run: function () {
+      var a = 'A' + rid(), bad = [], last;
+      return api('core', 'POST', '/accounts', { id: 'N' + rid(), owner_name: 'Eksi', iban: 'TR1', balance: -50 }).then(function (r) {
+        last = r; if (r.status !== 422) bad.push('negatif bakiye ' + r.status + ' (422)');
+        return mk(a, 'Test A', 100);
+      }).then(function () { return mk(a, 'Test A', 100); }).then(function (r) {
+        if (r.status !== 409) bad.push('aynı id ' + r.status + ' (409)');
+        return send({ from_account: a, to_account: a, amount: 10 });
+      }).then(function (r) {
+        if (r.status !== 422) bad.push('aynı hesaba transfer ' + r.status + ' (422)');
+        return result(bad.length === 0, bad.length ? bad.join('; ') : '3 durumun hepsi doğru', last);
+      });
+    } },
+    { task: 'M5', title: 'SQL injection kapalı, meşru sorgu çalışıyor', run: function () {
+      var a = 'A' + rid(), b = 'B' + rid(), owner = 'Ali' + rid();
+      return mk(a, owner, 1000).then(function () { return mk(b, 'Test B', 0); }).then(function () { return send({ from_account: a, to_account: b, amount: 10 }); })
+        .then(function () { return api('core', 'GET', '/reports/transfers?owner=' + encodeURIComponent(owner)); })
+        .then(function (legit) {
+          return api('core', 'GET', "/reports/transfers?owner=" + encodeURIComponent("x' OR '1'='1")).then(function (attack) {
+            var n = Array.isArray(attack.json) ? attack.json.length : '?';
+            var ok = legit.status === 200 && Array.isArray(legit.json) && legit.json.length === 1 && Array.isArray(attack.json) && attack.json.length === 0;
+            return result(ok, 'Meşru sorgu: ' + (Array.isArray(legit.json) ? legit.json.length : '?') + ' kayıt (1), saldırı: ' + n + ' kayıt (0)', legit);
+          });
+        });
+    } },
+    { task: 'M5', title: 'Geçerli arşiv adı çalışır, yol gezintisi reddedilir', run: function () {
+      return api('core', 'POST', '/reports/archive', { filename: 'q1-2025' }).then(function (ok1) {
+        return api('core', 'POST', '/reports/archive', { filename: '../../etc/evil' }).then(function (bad) {
+          var ok = ok1.status === 200 && ok1.json && ok1.json.exit_code === 0 && bad.status === 422;
+          return result(ok, 'q1-2025: ' + ok1.status + ' (200), ../../etc/evil: ' + bad.status + ' (422)', ok1);
+        });
+      });
+    } },
+    { task: 'M1', title: 'Limits servisi: PRD örnek senaryosu ve doğrulama hataları', run: function () {
+      var c = 'C9' + String(Math.floor(10000 + Math.random() * 89999)), steps = [], bad = [], last;
+      var seq = [
+        ['2025-03-14', '1500.00', true, null, '3500.00'], ['2025-03-14', '2500.00', false, 'PER_TRANSFER_LIMIT_EXCEEDED', '3500.00'],
+        ['2025-03-14', '2000.00', true, null, '1500.00'], ['2025-03-14', '1600.00', false, 'DAILY_LIMIT_EXCEEDED', '1500.00'],
+        ['2025-03-15', '1600.00', true, null, '3400.00']
+      ];
+      return api('limits', 'PUT', '/limits/' + c, { daily_limit: '5000.00', per_transfer_limit: '2000.00' }).then(function (put) {
+        last = put;
+        if (put.down) return result(false, 'Limits servisi çalışmıyor', put);
+        if (put.status !== 200) bad.push('limit tanımlama ' + put.status);
+        return seq.reduce(function (p, s, i) {
+          return p.then(function () { return api('limits', 'POST', '/limits/' + c + '/authorize', { amount: s[1], occurred_on: s[0] }).then(function (r) {
+            var j = r.json || {};
+            if (j.allowed !== s[2] || (j.reason || null) !== s[3] || j.remaining_daily !== s[4]) bad.push((i + 1) + '. adım: ' + (j.allowed) + '/' + (j.reason || '-') + '/' + j.remaining_daily);
+          }); });
+        }, Promise.resolve()).then(function () { return api('limits', 'GET', '/limits/X123'); }).then(function (r) {
+          if (r.status !== 422 || !r.json || !r.json.error || r.json.error.code !== 'VALIDATION_ERROR') bad.push('geçersiz müşteri no: ' + r.status);
+          return api('limits', 'PUT', '/limits/C9' + String(Math.floor(10000 + Math.random() * 89999)), { daily_limit: '1000', per_transfer_limit: '500' });
+        }).then(function (r) {
+          if (r.status !== 200) bad.push('"1000" tutarı ' + r.status + ' (200 beklenir)');
+          return result(bad.length === 0, bad.length ? bad.join('; ') : 'PRD senaryosunun 5 adımı ve doğrulamalar doğru', last);
+        });
+      });
+    } }
+  ];
+
+  var rows = [];
+  CHECKS.forEach(function (c) {
+    var badge = h('span', { class: 'badge' }, 'Çalıştırılmadı');
+    var detail = h('span', { class: 'detail' }, '');
+    var btn = h('button', { class: 'btn alt' }, 'Çalıştır');
+    var row = h('tr', {}, h('td', {}, h('span', { class: 'tag' }, c.task)), h('td', {}, c.title, detail), h('td', {}, badge), h('td', {}, btn));
+    c.exec = function () {
+      btn.disabled = true; badge.className = 'badge'; badge.textContent = 'Çalışıyor...';
+      return c.run().then(function (r) {
+        badge.className = 'badge ' + (r.down ? 'down' : r.ok ? 'ok' : 'bad');
+        badge.textContent = r.down ? 'Servis yok' : r.ok ? 'Düzeltildi' : 'Henüz değil';
+        detail.textContent = r.detail;
+      }).catch(function (e) { badge.className = 'badge bad'; badge.textContent = 'Hata'; detail.textContent = String(e); })
+        .then(function () { btn.disabled = false; });
+    };
+    btn.addEventListener('click', c.exec);
+    $('#c-body').append(row); rows.push(row);
+  });
+  busy($('#c-all'), function () {
+    return CHECKS.reduce(function (p, c) { return p.then(c.exec); }, Promise.resolve());
+  });
+
+  $('#log-clear').addEventListener('click', function () { $('#log').innerHTML = ''; });
+  refreshAccounts();
+})();
+</script>
+</body>
+</html>

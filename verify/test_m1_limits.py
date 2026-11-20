@@ -50,7 +50,7 @@ def test_default_limits_for_unknown_customer(client):
 
 
 def test_put_then_get_limits_roundtrip(client):
-    """Limit tanimla ve geri oku (2 ondalikli string, source=custom)"""
+    """Limit tanimla ve geri oku (ondalik kismi olmayan veya 1 ondalikli tutar da gecerli; yanit 2 ondalikli, source=custom)"""
     cid = next_customer_id()
     put = _set_limits(client, cid, "5000", "2000.5")
     assert put.status_code == 200, put.text

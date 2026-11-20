@@ -4,12 +4,27 @@ import importlib
 import shutil
 import sys
 
+import pytest
 from common import ROOT, run
+
+SETUP_HINT = "python3 setup.py --scanners  (Windows: py setup.py --scanners)"
+
+
+def _find_semgrep():
+    for folder in (".venv-tools/bin", ".venv-tools/Scripts", ".venv/bin", ".venv/Scripts"):
+        for exe in ("semgrep", "semgrep.exe"):
+            candidate = ROOT / folder / exe
+            if candidate.exists():
+                return str(candidate)
+    return shutil.which("semgrep")
 
 
 def test_python_version():
-    """Python 3.10 veya uzeri"""
-    assert sys.version_info >= (3, 10), f"Python {sys.version_info.major}.{sys.version_info.minor} bulundu, 3.10+ gerekli"
+    """Python 3.11 veya uzeri"""
+    assert sys.version_info >= (3, 11), (
+        f"Python {sys.version_info.major}.{sys.version_info.minor} bulundu, 3.11+ gerekli. "
+        "Yeni bir Python kurup kurulumu onunla calistirin (ornek: PYTHON=/yol/python3.12 ./setup.sh --scanners)"
+    )
 
 
 def test_dependencies_installed():
@@ -20,7 +35,7 @@ def test_dependencies_installed():
             importlib.import_module(name)
         except ImportError:
             missing.append(name)
-    assert not missing, f"eksik paket: {', '.join(missing)}  ->  ./setup.sh calistirin"
+    assert not missing, f"eksik paket: {', '.join(missing)}  ->  {SETUP_HINT}"
 
 
 def test_core_app_boots():
@@ -44,6 +59,8 @@ def test_repo_has_workshop_files():
         "fixtures/incident/repro.py",
         "fixtures/data/customers.csv",
         "deploy/Dockerfile",
+        "ui/server.py",
+        "ui/index.html",
     ]
     missing = [p for p in expected if not (ROOT / p).exists()]
     assert not missing, f"eksik dosya: {', '.join(missing)}"
@@ -51,18 +68,21 @@ def test_repo_has_workshop_files():
 
 def test_git_available():
     """Git kurulu ve klasor bir git deposu"""
-    assert shutil.which("git"), "git bulunamadi"
+    assert shutil.which("git"), "git bulunamadi (https://git-scm.com/downloads)"
     result = run(["git", "rev-parse", "--is-inside-work-tree"])
     assert result.returncode == 0, "bu klasor bir git deposu degil (sablondan olusturdugunuz depoyu klonladiniz mi?)"
 
 
 def test_semgrep_installed():
     """semgrep kurulu (M5 icin)"""
-    result = run([sys.executable, "-m", "semgrep", "--version"]) if shutil.which("semgrep") is None else run(["semgrep", "--version"])
-    ok = shutil.which("semgrep") is not None or result.returncode == 0
-    assert ok, "semgrep yok  ->  ./setup.sh --scanners"
+    executable = _find_semgrep()
+    if executable is None and sys.platform == "win32":
+        pytest.skip("Windows'ta semgrep yerel kurulamayabilir; M5 taramasini WSL'de calistirin ya da egitmene gosterin")
+    assert executable, f"semgrep yok  ->  {SETUP_HINT}"
+    result = run([executable, "--version"])
+    assert result.returncode == 0, "semgrep bulundu ama calismiyor: " + (result.stderr.strip().splitlines() or ["?"])[-1]
 
 
 def test_bob_cli_installed():
     """Bob Shell (bob komutu) kurulu (M2 icin)"""
-    assert shutil.which("bob"), "'bob' komutu PATH'te yok; facilitator'dan kurulum yonergesini isteyin"
+    assert shutil.which("bob"), "'bob' komutu PATH'te yok; kilavuzdaki Bob Shell kurulum adimini izleyin (sonra: bob --version)"

@@ -30,7 +30,7 @@ Tüm hatalar tek bir **hata zarfı** ile döner. Çıplak `HTTPException` gövde
 Ek kurallar:
 
 - Para hareketi **atomiktir**: bir adım başarısız olursa hiçbir bakiye değişmemiş olmalıdır. Önce doğrula, sonra yaz.
-- Para hareketi yapan uç nokta `Idempotency-Key` başlığını destekler. Aynı anahtarla gelen ikinci istek **yeni işlem oluşturmaz**, ilk yanıtı döner.
+- Para hareketi yapan endpoint `Idempotency-Key` başlığını destekler. Aynı anahtarla gelen ikinci istek **yeni işlem oluşturmaz**, ilk yanıtı döner.
 - Beklenmeyen hatalar loglanır (sunucu tarafında, ayrıntılı), istemciye `INTERNAL_ERROR` döner.
 
 ## 3. Loglama
@@ -41,7 +41,7 @@ Ek kurallar:
 
 ## 4. Test standardı
 
-- Testler **API seviyesinde** yazılır: `fastapi.testclient.TestClient` ile uç noktalar üzerinden. İç fonksiyonlara bağımlı test yazılmaz.
+- Testler **API seviyesinde** yazılır: `fastapi.testclient.TestClient` ile endpoint'ler üzerinden. İç fonksiyonlara bağımlı test yazılmaz.
 - Her test dosyasında store her testten önce sıfırlanır:
 
 ```python
