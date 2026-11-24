@@ -820,6 +820,122 @@ Fiyatlar: Opus 5.5, Anthropic API listesi, 1M token başına.
 
 ---
 
+# Task 7: Bobcoin ve Harcama Sınırları (M7 - Bob Shell `--max-cost` / `--max-turns`)
+
+CFO soruyor: "Bu iş bize kaça mal oluyor, nereden izleyeceğiz?" Hedef: küçük bir işi Bob Shell ile maliyet ve tur sınırı koyarak, çıktıyı JSON alarak çalıştırmak; aynı işi farklı sınırlarla tekrar edip karşılaştırmak; rakamları ve bir sınır önerisini `reports/bobcoin-notes.md` dosyasına yazmak. Kaynak: `missions/M7-bobcoin-analytics.md`. Özet Word dosyası: `task7-bobcoin-limits-auroro-pay.docx`.
+
+- **Platform:** macOS
+- **Tarih:** 2026-11-24
+- **Session ID:** `8f7853a5-22fe-4dc0-89c6-5017762f8ff0`
+
+## 1. Akış
+
+| # | İstek | Sonuç |
+|---|---|---|
+| 1 | Claude Code'da `max-turns` ve `max-cost` verilebilir mi? Küçük bir görevle dene | `claude -p --max-turns --max-budget-usd` iki kez çalıştırıldı: 3 turda `error_max_turns` ($0.167), 8 turda `success` ($0.206) |
+| 2 | Aynı işi Bob Shell ile sınır koyarak, JSON çıktıyla, farklı kombinasyonlarla dene; CFO'ya HTML sayfası hazırla | `BOB_API_KEY` tanımlı değildi; `scripts/bob_limit_matrix.sh` hazırlandı |
+| 3 | API anahtarı verildi | 2 iş tipi × 8 kombinasyon çalıştırıldı; CFO sayfası `reports/bob-limits/cfo-bobcoin-raporu.html` |
+| 4 | `reports/bobcoin-notes.md` yaz | Notlar yazıldı; `verify m7` 3/3 PASS |
+| 5 | Token/maliyet raporunu güncelle, Task 7 docx'i oluştur | Bu bölüm ve docx |
+
+### Claude Code: `claude -p` sınırları
+
+| Sınır | Sonuç | Tur | Maliyet |
+|---|---|---:|---:|
+| `--max-turns 3 --max-budget-usd 0.25` | `error_max_turns` | 4 | $0.167 |
+| `--max-turns 8 --max-budget-usd 0.50` | `success` | 4 | $0.206 |
+
+`--max-budget-usd` `--help`'te görünüyor, `--max-turns` görünmüyor ama çalışıyor. İkisi de yalnız `-p` modunda; kontrol tur sonunda yapıldığı için 3 tur sınırında 4 tur sayıldı.
+
+### Bob Shell: ölçülen Bobcoin tüketimi
+
+Kaynak: her çalıştırmanın `bob run --format json` çıktısındaki `stats.session_costs`. Hepsi `--mode ask --disable-mcp`, salt okunur.
+
+| İş | Senaryo | --max-cost | --max-turns | Sonuç | Bobcoin | Araç çağrısı |
+|---|---|---:|---:|---|---:|---:|
+| Küçük (`fees.py` açıklama) | tight / lowturn / lowcost / balanced / loose | 0.05 - 2 | 2 - 15 | 5'i de tamamlandı | 0.0422 - 0.0425 | 1 |
+| Büyük (tüm `services/core` + `tests/`) | heavy-turncap | 5 | 2 | 2 turda kesildi, cevap 49 karakter | 0.0415 | 4 |
+| Büyük | heavy-costcap | 0.05 | 20 | tavanda kesildi, cevap yarım | 0.0664 | 7 |
+| Büyük | heavy-loose | 5 | 30 | tamamlandı | 0.3361 | 20 |
+
+Bulgular:
+
+- `--max-cost` kesin tavan değil: 0.05 tavanlı işte gerçek harcama 0.066 (%33 aşım).
+- Sınıra takılan iş çıkış kodu 0 ve `status: "success"` ile dönüyor; kesildiği yalnız ayrı `"type":"error"` satırında görünüyor.
+- Çok dar sınır boşa harcama: 2 tur sınırı 0.042 Bobcoin harcatıp kullanılamaz bir cevap üretti.
+- Öneri: küçük iş `--max-cost 0.10 --max-turns 5`, büyük iş `--max-cost 0.50 --max-turns 30`; bütçe planında tavanın 1.33 katı.
+
+Toplam Bob harcaması: 9 çalıştırma (1 deneme + 8 senaryo), **~0.70 Bobcoin**. Bob Admin portalı ve Bobalytics rakamları okunmadı (erişim yok; Bobalytics 60 dk gecikmeli).
+
+### Çıktılar
+
+| Dosya | İçerik |
+|---|---|
+| `scripts/bob_limit_matrix.sh` (yeni) | Aynı işi 5 sınır kombinasyonuyla çalıştıran betik; anahtarı ortam değişkeninden okur |
+| `reports/bob-limits/run-*.json`, `summary.json` (yeni) | Ham Bob çıktıları ve özet |
+| `reports/bob-limits/cfo-bobcoin-raporu.html` (yeni) | CFO sayfası: öneri, bulgular, çalıştırma tablosu, aylık maliyet hesaplayıcısı |
+| `reports/bob-run.json` (yeni) | M7 teslimi (`balanced` senaryosu) |
+| `reports/bobcoin-notes.md` (yeni) | Rakamlar, kaynak, bütçe önerisi |
+
+API anahtarı sohbete düz metin yapıştırıldı; hiçbir dosyaya yazılmadı (repoda `bob_prod_` araması boş), ancak iptal edilip yenisi üretilmeli. `services/`, `verify/`, `tests/`, `docs/` değiştirilmedi; commit yapılmadı.
+
+### Doğrulama
+
+```
+$ python3 verify/run.py m7
+=== M7 Bobcoin ve analytics ===
+3 passed in 0.00s
+[PASS] reports/bob-run.json: 'bob run --format json' ciktisi gecerli JSON
+[PASS] reports/bobcoin-notes.md: Bobcoin rakamlari ve kaynaklari (portal / Bobalytics) yazilmis
+[PASS] Notlar bir butce karari iceriyor (--max-cost / --max-turns / oneri)
+
+M7 Bobcoin ve analytics: PASS  3/3 kontrol  [0.1s]
+```
+
+| Kontrol | Sonuç |
+|---|---|
+| `python3 verify/run.py m7` | **3/3 PASS** |
+| Repoda API anahtarı araması | Bulunamadı |
+
+## 2. Kullanım: token ve maliyet
+
+Kaynaklar: `~/.claude/projects/-Users-barissozen-bobathon-auroro-pay2/8f7853a5-22fe-4dc0-89c6-5017762f8ff0.jsonl` ve iki `claude -p` denemesi (`8604dba9-e034-4fc8-abb5-dba0868a74aa.jsonl`, `734240b7-3220-4368-9424-e9b88f9f7a20.jsonl`).
+
+### Süre
+
+| | Saat (yerel, UTC+3) |
+|---|---|
+| Başlangıç | 12:01:54 |
+| Son kayıt | 12:16:15 |
+| **Toplam** | **~14 dk 21 sn** |
+
+### Model
+
+| Model | API çağrısı |
+|---|---|
+| Claude Opus 5.5 (`claude-opus-5-5`) | 35 (ana oturum 28, `claude -p` denemeleri 7) |
+
+### Token kullanımı ve maliyet
+
+Fiyatlar: Opus 5.5, Anthropic API listesi, 1M token başına.
+
+| Tür | Token | Birim fiyat | Maliyet |
+|---|---:|---:|---:|
+| Input (önbelleksiz) | 78 | $4.00 | $0.0003 |
+| Output | 27.513 | $20.00 | $0.5503 |
+| Cache yazma (1 saat TTL) | 136.326 | $8.00 | $1.0906 |
+| Cache okuma | 1.958.726 | $0.20 | $0.3917 |
+| **Toplam** | **2.122.643** | | **~$2.03** |
+
+### Notlar
+
+- Token'ların yaklaşık %92'si cache okuma; en büyük maliyet kalemi cache yazma (%54), ardından output (%27).
+- İki `claude -p` denemesi ($0.17 + $0.21) her biri sıfır bağlamla başladığı için kendi cache yazmasını yaptı; Task 7 maliyetinin ~%18'i bu denemelerden.
+- Bob Shell harcaması (~0.70 Bobcoin) bu tabloya dahil değil; Bob ayrı faturalanır.
+- Rakamlar, bu rapor isteğinde kullanımın hesaplandığı ana kadar olan kısmı kapsar. Canlı değer için `/cost` yazın.
+
+---
+
 # Özet: görev bazında kullanım
 
 | Görev | Session | Süre | API çağrısı | Token | Maliyet |
@@ -831,4 +947,7 @@ Fiyatlar: Opus 5.5, Anthropic API listesi, 1M token başına.
 | Task 4: Kapsamlı Test | `5d167da0…` | ~19 dk 06 sn | 84 | 4.105.590 | ~$4.20 |
 | Task 5: Güvenlik Bulguları | `39d65112…` | ~9 dk 19 sn | 26 | 1.553.314 | ~$1.09 |
 | Task 6: Tedarikçi SDK ve Müşteri Verisi | `5a42ef75…` | ~9 dk 15 sn | 29 | 1.871.309 | ~$1.45 |
-| **Toplam** | | **~1 sa 31 dk 29 sn** | **219** | **12.084.733** | **~$10.79** |
+| Task 7: Bobcoin ve Harcama Sınırları | `8f7853a5…` | ~14 dk 21 sn | 35 | 2.122.643 | ~$2.03 |
+| **Toplam** | | **~1 sa 45 dk 50 sn** | **254** | **14.207.376** | **~$12.82** |
+
+Bob Shell harcaması bu tabloya dahil değildir (Task 7: ~0.70 Bobcoin).

@@ -1,0 +1,279 @@
+<title>Bob Shell Harcama Sınırları</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Serif:wght@500;600&display=swap">
+<style>
+/* Layout: one finance-memo column; verdict first, then evidence table, then calculator, then method. */
+:root {
+  --bg: #f6f7f9; --surface: #ffffff; --ink: #14202e; --muted: #5a6676; --line: #dde2e8;
+  --accent: #1f5f8b; --accent-soft: #e3edf5;
+  --ok: #2f7d4f; --ok-soft: #e4f2e9; --warn: #a76a00; --warn-soft: #fbf0db; --bad: #b23a3a; --bad-soft: #f8e4e4;
+  --bar: #9db7cc; --bar-strong: #1f5f8b;
+  --f-display: "IBM Plex Serif", Georgia, serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f151c; --surface: #161e27; --ink: #e6ebf1; --muted: #98a4b3; --line: #2a3542;
+  --accent: #7fb3da; --accent-soft: #1c2d3c;
+  --ok: #6cc292; --ok-soft: #173024; --warn: #e0ae4f; --warn-soft: #33270f; --bad: #ec8a8a; --bad-soft: #3a1c1c;
+  --bar: #3f5a70; --bar-strong: #7fb3da; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f151c; --surface: #161e27; --ink: #e6ebf1; --muted: #98a4b3; --line: #2a3542;
+  --accent: #7fb3da; --accent-soft: #1c2d3c;
+  --ok: #6cc292; --ok-soft: #173024; --warn: #e0ae4f; --warn-soft: #33270f; --bad: #ec8a8a; --bad-soft: #3a1c1c;
+  --bar: #3f5a70; --bar-strong: #7fb3da; color-scheme: dark }
+
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 980px; margin: 0 auto; padding-block: 40px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 40px; }
+h1, h2 { font-family: var(--f-display); font-weight: 600; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(1.7rem, 4vw, 2.3rem); line-height: 1.15; }
+h2 { font-size: 1.3rem; }
+p { margin: 0; max-width: 68ch; }
+.eyebrow { font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.mono, code { font-family: var(--f-mono); font-size: .88em; }
+code { background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; }
+.num { font-variant-numeric: tabular-nums; }
+section { display: grid; gap: 14px; }
+header { display: grid; gap: 12px; }
+.lede { color: var(--muted); font-size: 1.02rem; }
+
+/* Verdict */
+.verdict { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.verdict > div { background: var(--surface); padding: 18px 20px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.verdict .big { font-family: var(--f-mono); font-size: 1.6rem; font-weight: 500; }
+.verdict .big small { font-size: .8rem; color: var(--muted); font-family: var(--f-body); }
+.verdict p { font-size: .88rem; color: var(--muted); }
+@media (max-width: 720px) { .verdict { grid-template-columns: 1fr; } }
+
+/* Recommendation */
+.rec { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.rec article { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; display: grid; gap: 10px; min-width: 0; }
+.rec h3 { margin: 0; font-size: 1rem; font-weight: 600; }
+.rec pre { margin: 0; font-family: var(--f-mono); font-size: .82rem; background: var(--accent-soft); padding: 10px 12px; border-radius: 6px; overflow-x: auto; white-space: pre; }
+.rec .why { font-size: .88rem; color: var(--muted); }
+@media (max-width: 720px) { .rec { grid-template-columns: 1fr; } }
+
+/* Findings */
+.findings { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.findings li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: start; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; }
+.findings li > div { min-width: 0; }
+.findings b { display: block; margin-bottom: 2px; }
+.findings span.t { font-size: .9rem; color: var(--muted); }
+
+.pill { display: inline-block; font-size: .72rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.pill.ok { background: var(--ok-soft); color: var(--ok); }
+.pill.warn { background: var(--warn-soft); color: var(--warn); }
+.pill.bad { background: var(--bad-soft); color: var(--bad); }
+
+/* Table */
+.table-box { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+table { border-collapse: collapse; width: 100%; min-width: 760px; font-size: .88rem; }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: middle; }
+th { font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 600; background: var(--bg); }
+tr:last-child td { border-bottom: 0; }
+td.r, th.r { text-align: right; }
+tr.group td { background: var(--accent-soft); font-weight: 600; font-size: .8rem; color: var(--accent); }
+.barcell { width: 200px; }
+.bar { position: relative; height: 10px; background: var(--bg); border-radius: 3px; }
+.bar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--bar); border-radius: 3px; }
+.bar i.over { background: var(--bad); }
+.bar b { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--ink); }
+.legend { font-size: .8rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 16px; }
+.legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; background: var(--bar); }
+.legend span.c::before { width: 2px; height: 14px; background: var(--ink); vertical-align: -3px; }
+.legend span.o::before { background: var(--bad); }
+
+/* Calculator */
+.calc { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; }
+.inputs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-content: start; }
+.inputs label { display: grid; gap: 4px; font-size: .8rem; color: var(--muted); font-weight: 500; }
+.inputs input { font: inherit; font-family: var(--f-mono); font-size: .95rem; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; width: 100%; box-sizing: border-box; }
+.inputs input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.inputs .full { grid-column: 1 / -1; }
+.out { display: grid; gap: 12px; align-content: start; }
+.out .row { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; border-bottom: 1px dashed var(--line); padding-bottom: 8px; }
+.out .row:last-of-type { border-bottom: 0; }
+.out .label { font-size: .88rem; }
+.out .label small { display: block; color: var(--muted); font-size: .78rem; }
+.out .val { font-family: var(--f-mono); font-size: 1.15rem; font-weight: 500; text-align: right; white-space: nowrap; }
+.out .val.main { font-size: 1.5rem; color: var(--accent); }
+.note { font-size: .8rem; color: var(--muted); }
+@media (max-width: 720px) { .calc { grid-template-columns: 1fr; } .inputs { grid-template-columns: 1fr 1fr; } }
+
+.method { font-size: .88rem; color: var(--muted); display: grid; gap: 8px; }
+.method ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+footer { font-size: .78rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 16px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Aurora Bank · Payments · Bob Shell harcama ölçümü · 24.11.2026</div>
+    <h1>Bob Shell işleri ne kadar tutuyor, sınırlar nasıl koruyor?</h1>
+    <p class="lede">Aynı repo üzerinde iki tipik iş, <code>--max-cost</code> ve <code>--max-turns</code> değerlerinin 8 farklı kombinasyonuyla çalıştırıldı. Tüm rakamlar Bob Shell'in kendi JSON çıktısındaki <code>stats.session_costs</code> alanından okundu (birim: Bobcoin). Tahmin yok.</p>
+  </header>
+
+  <section aria-labelledby="h-ozet">
+    <h2 id="h-ozet">Özet</h2>
+    <div class="verdict">
+      <div>
+        <span class="eyebrow">Küçük iş · tek modül açıklama</span>
+        <span class="big num">0,042 <small>Bobcoin / iş</small></span>
+        <p>5 çalıştırmada 0,0422 ile 0,0425 arasında. Çok istikrarlı, 1 araç çağrısı, ~9 sn.</p>
+      </div>
+      <div>
+        <span class="eyebrow">Büyük iş · 9 modül + testler</span>
+        <span class="big num">0,336 <small>Bobcoin / iş</small></span>
+        <p>Sınırsıza yakın çalıştırmada 20 araç çağrısı, 39 sn. Küçük işin yaklaşık 8 katı.</p>
+      </div>
+      <div>
+        <span class="eyebrow">Maliyet tavanı aşımı</span>
+        <span class="big num" style="color:var(--bad)">+%33</span>
+        <p>0,050 tavanlı işte gerçek harcama 0,066 oldu. Tavan tur sonunda kontrol ediliyor, kesin sınır değil.</p>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-oneri">
+    <h2 id="h-oneri">Önerilen sınırlar</h2>
+    <div class="rec">
+      <article>
+        <span class="pill ok">Küçük iş</span>
+        <h3>Tek dosya açıklama, kısa soru, küçük düzeltme</h3>
+        <pre>bob run --format json --mode ask \
+  --max-cost 0.10 --max-turns 5 "..."</pre>
+        <p class="why">Ölçülen 0,042'nin 2,4 katı pay. %33 aşım olsa bile iş başına en fazla ~0,13 Bobcoin.</p>
+      </article>
+      <article>
+        <span class="pill warn">Büyük iş</span>
+        <h3>Çok dosyalı analiz, kapsam tablosu, refaktör planı</h3>
+        <pre>bob run --format json --mode ask \
+  --max-cost 0.50 --max-turns 30 "..."</pre>
+        <p class="why">Ölçülen 0,336'nın 1,5 katı pay. Aşımla birlikte iş başına en fazla ~0,67 Bobcoin.</p>
+      </article>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-bulgu">
+    <h2 id="h-bulgu">CFO'nun bilmesi gerekenler</h2>
+    <ul class="findings">
+      <li><span class="pill bad">Risk</span><div><b>Sınıra takılan iş "başarılı" görünüyor.</b><span class="t">İki kesilen çalıştırmada da çıkış kodu 0 ve <code>status: "success"</code> döndü. Kesildiğini yalnızca JSON'daki ayrı <code>"type":"error"</code> satırı söylüyor. Otomasyon ve raporlama bu satırı kontrol etmezse yarım cevaplar tamamlanmış iş gibi sayılır.</span></div></li>
+      <li><span class="pill bad">Risk</span><div><b>Maliyet tavanı tur bitince kontrol ediliyor.</b><span class="t">0,050'lik tavan 0,066'ya kadar aşıldı. Bütçe planlarken tavanın yaklaşık 1,33 katını hesaba katın ve <code>--max-cost</code>'u her zaman <code>--max-turns</code> ile birlikte verin.</span></div></li>
+      <li><span class="pill warn">Dikkat</span><div><b>Çok dar sınır para kazandırmıyor, boşa harcatıyor.</b><span class="t">Büyük işte 2 tur sınırı 0,042 Bobcoin harcatıp 49 karakterlik kullanılamaz bir cevap üretti. 0,05 tavan da 0,066 harcatıp işi yarım bıraktı. Sınır, işin gerçek maliyetinin biraz üstünde olmalı.</span></div></li>
+      <li><span class="pill ok">İyi</span><div><b>Küçük işlerde maliyet öngörülebilir.</b><span class="t">Beş farklı sınır ayarında maliyet 0,0422 ile 0,0425 arasında kaldı. Sınırlar bu işe hiç dokunmadı, yani küçük işler için sınır yalnızca bir sigorta.</span></div></li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="h-kanit">
+    <h2 id="h-kanit">Çalıştırmalar</h2>
+    <div class="legend"><span>Gerçek harcama</span><span class="o">Tavanı aşan harcama</span><span class="c">Maliyet tavanı (ölçek içindeyse)</span></div>
+    <div class="table-box">
+      <table>
+        <thead><tr>
+          <th>Senaryo</th><th class="r">--max-cost</th><th class="r">--max-turns</th><th>Sonuç</th>
+          <th class="r">Harcama</th><th class="barcell">Harcama / tavan</th><th class="r">Araç çağrısı</th><th class="r">Süre</th><th class="r">Cevap</th>
+        </tr></thead>
+        <tbody id="runs"></tbody>
+      </table>
+    </div>
+    <p class="note">Küçük iş: "services/core/fees.py modülünü açıkla: ne yapar, ücret eşiği ve yuvarlama kuralı nedir? En fazla 8 cümle." Büyük iş: "services/core altındaki tüm .py dosyalarını oku, her birini 2 cümleyle açıkla; tests/ altındaki testleri oku ve kapsam tablosu yap." İkisi de salt okunur <code>ask</code> modunda, MCP kapalı.</p>
+  </section>
+
+  <section aria-labelledby="h-hesap">
+    <h2 id="h-hesap">Ekip geneli aylık tahmin</h2>
+    <p>Varsayımları değiştirin; hesap yukarıdaki ölçülen birim maliyetleri kullanır. Varsayılan değerler örnektir, ekibin gerçek kullanımı değildir.</p>
+    <div class="calc">
+      <div class="inputs">
+        <label for="devs">Geliştirici sayısı<input id="devs" type="number" min="0" step="1" value="10"></label>
+        <label for="days">İş günü / ay<input id="days" type="number" min="0" step="1" value="21"></label>
+        <label for="small">Küçük iş / kişi / gün<input id="small" type="number" min="0" step="1" value="20"></label>
+        <label for="big">Büyük iş / kişi / gün<input id="big" type="number" min="0" step="1" value="3"></label>
+        <label for="rate" class="full">1 Bobcoin kaç TL? (isteğe bağlı, Bob Admin sözleşmesinden)<input id="rate" type="number" min="0" step="0.01" placeholder="boş bırakılırsa yalnızca Bobcoin"></label>
+      </div>
+      <div class="out" aria-live="polite">
+        <div class="row"><span class="label">Beklenen aylık harcama<small>ölçülen ortalama birim maliyetle</small></span><span class="val main num" id="o-exp">-</span></div>
+        <div class="row"><span class="label">Önerilen sınırlarla en kötü durum<small>her iş tavana kadar gider + %33 aşım</small></span><span class="val num" id="o-cap">-</span></div>
+        <div class="row"><span class="label">Kişi başı beklenen / ay</span><span class="val num" id="o-dev">-</span></div>
+        <div class="row"><span class="label">Aylık iş adedi</span><span class="val num" id="o-jobs">-</span></div>
+        <p class="note">En kötü durum, bütçe onayında tavan olarak kullanılabilir. Beklenen değer gerçek tüketime yakındır.</p>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-yontem" class="method">
+    <h2 id="h-yontem" style="color:var(--ink)">Yöntem ve kaynak</h2>
+    <ul>
+      <li>Araç: Bob Shell 2.1.0, <code>bob run --format json --mode ask --disable-mcp</code>. Çalıştırma zamanı 24.11.2026, 09:05–09:08 UTC.</li>
+      <li>Rakamlar: her çalıştırmanın <code>stats.session_costs</code>, <code>stats.tool_calls</code> ve <code>stats.duration_ms</code> alanları. Ham dosyalar repoda <code>reports/bob-limits/run-*.json</code>, özet <code>summary.json</code>.</li>
+      <li>Bobalytics verisi 60 dakika gecikmeli ve UTC; bu çalıştırmalar orada henüz görünmeyebilir. Bakiye ve faturalama için Bob Admin portalı esas alınmalı.</li>
+      <li>Örneklem küçük (8 çalıştırma, 2 iş tipi). Büyük iş tek bir sınırsız çalıştırmaya dayanıyor; birkaç tekrarla doğrulanması önerilir.</li>
+    </ul>
+  </section>
+
+  <footer>Kaynak betik: <code>scripts/bob_limit_matrix.sh</code>. Para birimi Bobcoin; TL karşılığı yalnızca hesaplayıcıya oran girildiğinde gösterilir.</footer>
+</div>
+
+<script>
+(function () {
+  var runs = [
+    { g: "Küçük iş · fees.py açıklama" },
+    { n: "tight",    c: 0.05, t: 2,  cost: 0.0424, calls: 1,  s: 9.4,  ch: 1159, stop: null },
+    { n: "lowturn",  c: 2,    t: 2,  cost: 0.0422, calls: 1,  s: 7.5,  ch: 917,  stop: null },
+    { n: "lowcost",  c: 0.10, t: 10, cost: 0.0424, calls: 1,  s: 9.0,  ch: 1137, stop: null },
+    { n: "balanced", c: 0.50, t: 6,  cost: 0.0425, calls: 1,  s: 9.8,  ch: 1283, stop: null },
+    { n: "loose",    c: 2,    t: 15, cost: 0.0425, calls: 1,  s: 9.1,  ch: 1285, stop: null },
+    { g: "Büyük iş · tüm core modülleri + testler" },
+    { n: "heavy-turncap", c: 5,    t: 2,  cost: 0.0415, calls: 4,  s: 4.6,  ch: 49,   stop: "turn" },
+    { n: "heavy-costcap", c: 0.05, t: 20, cost: 0.0664, calls: 7,  s: 7.3,  ch: 1624, stop: "cost" },
+    { n: "heavy-loose",   c: 5,    t: 30, cost: 0.3361, calls: 20, s: 39.4, ch: 4976, stop: null }
+  ];
+  var SCALE = 0.40;
+  var fmt = function (v, d) { return v.toLocaleString("tr-TR", { minimumFractionDigits: d, maximumFractionDigits: d }); };
+  var body = document.getElementById("runs");
+  runs.forEach(function (r) {
+    var tr = document.createElement("tr");
+    if (r.g) { tr.className = "group"; tr.innerHTML = '<td colspan="9">' + r.g + "</td>"; body.appendChild(tr); return; }
+    var over = r.cost > r.c;
+    var pill = r.stop === "cost" ? '<span class="pill bad">Tavan aşıldı, kesildi</span>'
+             : r.stop === "turn" ? '<span class="pill warn">Tur sınırında kesildi</span>'
+             : '<span class="pill ok">Tamamlandı</span>';
+    var w = Math.min(r.cost / SCALE, 1) * 100;
+    var capMark = r.c <= SCALE ? '<b style="left:calc(' + (r.c / SCALE * 100) + '% - 1px)"></b>' : "";
+    tr.innerHTML =
+      '<td class="mono">' + r.n + "</td>" +
+      '<td class="r num mono">' + fmt(r.c, 2) + "</td>" +
+      '<td class="r num mono">' + r.t + "</td>" +
+      "<td>" + pill + "</td>" +
+      '<td class="r num mono">' + fmt(r.cost, 4) + "</td>" +
+      '<td class="barcell"><div class="bar" title="' + fmt(r.cost, 4) + ' / tavan ' + fmt(r.c, 2) + '"><i class="' + (over ? "over" : "") + '" style="width:' + w + '%"></i>' + capMark + "</div></td>" +
+      '<td class="r num mono">' + r.calls + "</td>" +
+      '<td class="r num mono">' + fmt(r.s, 1) + " sn</td>" +
+      '<td class="r num mono">' + r.ch.toLocaleString("tr-TR") + " kr.</td>";
+    body.appendChild(tr);
+  });
+
+  var SMALL = 0.0424, BIG = 0.3361, SMALL_CAP = 0.10, BIG_CAP = 0.50, OVERSHOOT = 1.33;
+  var ids = ["devs", "days", "small", "big", "rate"];
+  function val(id) { var v = parseFloat(document.getElementById(id).value); return isFinite(v) && v >= 0 ? v : 0; }
+  function money(bc) {
+    var rate = val("rate");
+    var s = fmt(bc, 1) + " BC";
+    if (rate > 0) s += " · " + fmt(bc * rate, 0) + " TL";
+    return s;
+  }
+  function calc() {
+    var devs = val("devs"), days = val("days"), sm = val("small"), bg = val("big");
+    var perDevDay = sm * SMALL + bg * BIG;
+    var capDevDay = (sm * SMALL_CAP + bg * BIG_CAP) * OVERSHOOT;
+    var exp = perDevDay * devs * days;
+    document.getElementById("o-exp").textContent = money(exp);
+    document.getElementById("o-cap").textContent = money(capDevDay * devs * days);
+    document.getElementById("o-dev").textContent = money(perDevDay * days);
+    document.getElementById("o-jobs").textContent = Math.round((sm + bg) * devs * days).toLocaleString("tr-TR");
+  }
+  ids.forEach(function (id) { document.getElementById(id).addEventListener("input", calc); });
+  calc();
+})();
+</script>
