@@ -1,9 +1,15 @@
-"""Aurora Core configuration."""
+"""Aurora Core configuration.
 
-API_KEY = "ak_live_7f3c9b21d84e4a6f9b0c5d1e2a3b4c5d"
-DB_PASSWORD = "Aur0ra!Pay#2024"
-JWT_SECRET = "super-secret-jwt-key-do-not-share"
+Secrets are never stored in the repo (ENGINEERING-HANDBOOK section 5); they are read from
+environment variables at import time.
+"""
 
-DB_URL = f"postgresql://aurora:{DB_PASSWORD}@db.internal.aurora-bank.example:5432/core"
+import os
 
-ARCHIVE_DIR = "archives"
+API_KEY = os.environ.get("AURORA_API_KEY", "")
+DB_PASSWORD = os.environ.get("AURORA_DB_PASSWORD", "")
+JWT_SECRET = os.environ.get("AURORA_JWT_SECRET", "")
+
+DB_URL = os.environ.get("AURORA_DB_URL", "")
+
+ARCHIVE_DIR = os.environ.get("AURORA_ARCHIVE_DIR", "archives")

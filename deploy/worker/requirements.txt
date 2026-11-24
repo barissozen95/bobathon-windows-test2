@@ -1,6 +1,9 @@
 # Arka plan isleyicisi (worker) bagimliliklari
-requests==2.19.1
-PyYAML==5.3
-Jinja2==2.10
-urllib3==1.24.1
+# Bilinen CVE'leri kapatan guncel surumlere sabitlendi (A5). Python 3.12 (deploy imaji / CI) gerektirir.
+requests==2.34.2
+PyYAML==6.0.4
+Jinja2==3.1.6
+urllib3==2.8.0
 fastapi>=0.110
+starlette>=1.3.1
+anyio>=4.14.2
