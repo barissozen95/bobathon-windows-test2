@@ -552,6 +552,137 @@ Fiyatlar: Opus 5.5, Anthropic API listesi, 1M token başına.
 
 ---
 
+# Task 5: Güvenlik Bulguları (M5 - Semgrep + A5 bağımlılıklar)
+
+Başlangıç durumu: `scripts/scan.py` **8** Semgrep bulgusu gösteriyordu (3 `deploy/Dockerfile`, 5 `deploy/terraform/main.tf`). Koddaki A1-A3 maddeleri (sırlar, SQL injection, shell komutu) Task 4'te kapatılmıştı; `verify m5` 8/13'teydi. Semgrep bağımlılıkları taramadığı için A5 (`deploy/worker/requirements.txt`) ayrıca ele alındı. Kaynaklar: `docs/ENGINEERING-HANDBOOK.md` (§5), `missions/M5-bob-findings.md`, `security/semgrep-rules.yml`. Özet Word dosyası: `task5-security-findings-auroro-pay.docx`.
+
+- **Platform:** macOS
+- **Tarih:** 2026-11-24
+- **Session ID:** `39d65112-da6d-44b7-8177-e8ea4d9f5a7a`
+
+## 1. Akış
+
+| # | İstek | Sonuç |
+|---|---|---|
+| 1 | Önce 1 bulguyu düzelt: `aurora-docker-add-url` | `ADD <url>` yerine HTTPS + SHA-256 doğrulamalı `RUN`; 8 → 7 bulgu |
+| 2 | Tüm bulguları düzelt | Dockerfile ve Terraform sertleştirildi; 0 bulgu |
+| 3 | A5 bağımlılıklarını ayrıca kontrol et ve düzelt | Worker bağımlılıkları yükseltildi, imaj Python 3.12; `pip-audit` temiz; m5 13/13 |
+| 4 | İşlev kontrolü (`scripts/m5_islev_kontrolu.py`) | Arşivleme ve sorgu çalışıyor; saldırı girdileri 422 / 0 kayıt |
+| 5 | Token/maliyet raporunu güncelle, Task 5 docx'i oluştur | Bu bölüm ve docx |
+
+### Semgrep bulguları ve düzeltmeler
+
+| Kural | Bulgu | Düzeltme |
+|---|---|---|
+| `aurora-docker-add-url` | `ADD http://...` ile bütünlük kontrolsüz indirme | HTTPS ile `RUN`; `LIBFX_SHA256` build arg ile `sha256sum -c` |
+| `aurora-docker-baked-secret` | `ENV GITHUB_TOKEN` imaja gömülü | Satır kaldırıldı; sır çalışma zamanında verilir |
+| `aurora-docker-user-root` | `USER root` | uid 10001 `app` kullanıcısı; `COPY --chown`; `USER app` |
+| `aurora-tf-open-cidr` | Tüm portlar `0.0.0.0/0`'a açık | Yalnız 8000; `allowed_ingress_cidrs` değişkeni (`/8`'den geniş aralık reddedilir) |
+| `aurora-tf-public-bucket` | `acl = "public-read"` | ACL kaldırıldı; public access block, `BucketOwnerEnforced`, KMS şifreleme |
+| `aurora-tf-inline-password` | RDS parolası açık metin | `manage_master_user_password = true` (Secrets Manager) |
+| `aurora-tf-unencrypted` | `storage_encrypted = false` | `storage_encrypted = true` |
+| `aurora-tf-public-db` | `publicly_accessible = true` | `publicly_accessible = false` |
+
+### A5: zafiyetli bağımlılıklar (`deploy/worker/requirements.txt`)
+
+| Paket | Eski | Yeni |
+|---|---|---|
+| requests | 2.19.1 | 2.34.2 |
+| PyYAML | 5.3 | 6.0.4 |
+| Jinja2 | 2.10 | 3.1.6 |
+| urllib3 | 1.24.1 | 2.8.0 |
+| starlette (fastapi üzerinden) | sabitlenmemiş (0.49.3) | `>=1.3.1` |
+| anyio (fastapi üzerinden) | sabitlenmemiş (4.12.1) | `>=4.14.2` |
+
+İlk denemede Python 3.9 uyumlu sürümler seçildi; `pip-audit` urllib3, starlette ve anyio için açık kayıt gösterdi ve bunların düzeltmeleri Python 3.10+ istiyordu. Proje ortamı ve CI 3.12 kullandığı için `deploy/Dockerfile` da `python:3.12-slim`'e taşındı (3.9 ayrıca güvenlik desteği dışı).
+
+Ara adımda `verify m5` Terraform kontrolü, eklenen doğrulama kuralının hata metnindeki `0.0.0.0/0` yazısı yüzünden FAIL verdi; kural bu metni içermeyecek şekilde (prefix uzunluğu kontrolü) yeniden yazıldı.
+
+Açık kalanlar: eski `GITHUB_TOKEN` ve RDS parolası git geçmişinde (iptal edilip yenisi üretilmeli); `docker build` artık `--build-arg LIBFX_SHA256=<sha256>` istiyor; `terraform apply` `allowed_ingress_cidrs` ister; `skip_final_snapshot = true` duruyor. terraform, hadolint ve Docker kurulu olmadığından imaj build edilmedi, `terraform validate` çalıştırılmadı. `verify/`, `docs/`, `fixtures/`, `tests/` değiştirilmedi; commit yapılmadı.
+
+### Doğrulama
+
+```
+$ .venv/bin/python scripts/m5_islev_kontrolu.py
+[OK] Gecerli arsiv adi (q1-2025): 200 {"exit_code":0}
+[OK] Gecersiz arsiv adi ('x; touch PWNED'): HTTP 422
+[OK] Gecersiz arsiv adi ('$(touch PWNED)'): HTTP 422
+[OK] Gecersiz arsiv adi ('../../etc/evil'): HTTP 422
+[OK] Gecersiz arsiv adi ('a b'): HTTP 422
+[OK] Mesru sorgu (owner=Alice): 1 kayit
+[OK] SQL injection denemesi: 0 kayit dondu
+
+Sonuc: islev bozulmadi
+```
+
+```
+$ python3 scripts/scan.py
+Semgrep bulgu sayisi: 0
+
+$ python3 verify/run.py m5
+=== M5 Bob Findings ===
+13 passed in 2.55s
+[PASS] Semgrep taramasi 0 bulgu veriyor (scripts/scan.py)
+[PASS] Bulgular '# nosemgrep' ile susturulmamis
+[PASS] Bilinen gizli degerler repoda yok (kod, Dockerfile, Terraform)
+[PASS] Gizli bilgiler ortam degiskeninden okunuyor (os.environ)
+[PASS] SQL injection kapali: ' OR '1'='1 tum kayitlari getirmiyor
+[PASS] Komut enjeksiyonu ve yol gezintisi kapali (gecersiz dosya adi reddedilir) (4/4)
+[PASS] Gecerli dosya adiyla arsivleme hala calisiyor
+[PASS] Dockerfile: root degil, ADD <url> yok, imajda gizli bilgi yok
+[PASS] Terraform: dunyaya acik kural, public bucket, sifresiz/acik DB ve acik parola yok
+[PASS] deploy/worker/requirements.txt: bilinen zafiyetli surumler yukseltilmis
+
+M5 Bob Findings: PASS  13/13 kontrol  [2.6s]
+```
+
+| Kontrol | Önce | Sonra |
+|---|---|---|
+| `scripts/scan.py` | 8 bulgu | **0 bulgu** |
+| `python3 verify/run.py m5` | 8/13 | **13/13 PASS** |
+| `pip-audit` (worker, Python 3.12) | - | Bilinen zafiyet yok |
+| `pip-audit` (kök `requirements.txt`) | - | Bilinen zafiyet yok |
+| `scripts/m5_islev_kontrolu.py` | - | islev bozulmadi (7/7 OK) |
+| `pytest -q` | 175 passed | 175 passed (gerileme yok) |
+
+## 2. Kullanım: token ve maliyet
+
+Kaynak: `~/.claude/projects/-Users-barissozen-bobathon-auroro-pay2/39d65112-da6d-44b7-8177-e8ea4d9f5a7a.jsonl`
+
+### Süre
+
+| | Saat (yerel, UTC+3) |
+|---|---|
+| Başlangıç | 11:32:02 |
+| Son kayıt | 11:41:21 |
+| **Toplam** | **~9 dk 19 sn** |
+
+### Model
+
+| Model | API çağrısı |
+|---|---|
+| Claude Opus 5.5 (`claude-opus-5-5`) | 26 (alt ajan yok) |
+
+### Token kullanımı ve maliyet
+
+Fiyatlar: Opus 5.5, Anthropic API listesi, 1M token başına.
+
+| Tür | Token | Birim fiyat | Maliyet |
+|---|---:|---:|---:|
+| Input (önbelleksiz) | 62 | $4.00 | $0.0002 |
+| Output | 13.845 | $20.00 | $0.2769 |
+| Cache yazma (1 saat TTL) | 64.149 | $8.00 | $0.5132 |
+| Cache okuma | 1.475.258 | $0.20 | $0.2951 |
+| **Toplam** | **1.553.314** | | **~$1.09** |
+
+### Notlar
+
+- Token'ların yaklaşık %95'i cache okuma; en büyük maliyet kalemi cache yazma (%47).
+- `pip-audit` için yerel geçici sanal ortamlar kullanıldı; bunların ek API maliyeti yok.
+- Rakamlar bu rapor isteğinden önceki kısmı kapsar. Canlı değer için `/cost` yazın.
+
+---
+
 # Özet: görev bazında kullanım
 
 | Görev | Session | Süre | API çağrısı | Token | Maliyet |
@@ -561,4 +692,5 @@ Fiyatlar: Opus 5.5, Anthropic API listesi, 1M token başına.
 | Task 2: INCIDENT-2041 | `dcf41a98…` | ~15 dk 55 sn | 20 | 1.258.575 | ~$0.93 |
 | Task 3: QA Engineer Mode | `79770cf9…` | ~9 dk 25 sn | 31 | 1.657.753 | ~$1.50 |
 | Task 4: Kapsamlı Test | `5d167da0…` | ~19 dk 06 sn | 84 | 4.105.590 | ~$4.20 |
-| **Toplam** | | **~1 sa 12 dk 55 sn** | **164** | **8.660.110** | **~$8.25** |
+| Task 5: Güvenlik Bulguları | `39d65112…` | ~9 dk 19 sn | 26 | 1.553.314 | ~$1.09 |
+| **Toplam** | | **~1 sa 22 dk 14 sn** | **190** | **10.213.424** | **~$9.34** |
