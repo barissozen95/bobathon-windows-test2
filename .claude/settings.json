@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./fixtures/data/customers.csv)",
+      "Edit(./fixtures/data/customers.csv)",
+      "Bash(cat fixtures/data/customers.csv*)",
+      "Bash(head fixtures/data/customers.csv*)",
+      "Bash(tail fixtures/data/customers.csv*)",
+      "Bash(less fixtures/data/customers.csv*)",
+      "Bash(grep * fixtures/data/customers.csv*)"
+    ]
+  }
+}
