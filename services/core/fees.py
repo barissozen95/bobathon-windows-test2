@@ -1,20 +1,5 @@
-"""Transfer fee calculation. See docs/FEE-POLICY.md."""
+"""Backwards-compatible import path for the fee rules (see services/core/domain/fees.py)."""
 
-from decimal import ROUND_HALF_UP, Decimal
+from .domain.fees import CENT, REDUCED_RATE, STANDARD_RATE, THRESHOLD, fee_for, to_money
 
-CENT = Decimal("0.01")
-THRESHOLD = Decimal("1000.00")
-STANDARD_RATE = Decimal("0.005")
-REDUCED_RATE = Decimal("0.0025")
-
-
-def to_money(value) -> Decimal:
-    """Quantize a value to cents with ROUND_HALF_UP."""
-    return Decimal(str(value)).quantize(CENT, rounding=ROUND_HALF_UP)
-
-
-def fee_for(amount: Decimal) -> Decimal:
-    """Fee per FEE-POLICY: 0.50% below 1000.00, 0.25% at or above (threshold inclusive)."""
-    amount = Decimal(str(amount))
-    rate = REDUCED_RATE if amount >= THRESHOLD else STANDARD_RATE
-    return (amount * rate).quantize(CENT, rounding=ROUND_HALF_UP)
+__all__ = ["CENT", "THRESHOLD", "STANDARD_RATE", "REDUCED_RATE", "to_money", "fee_for"]
