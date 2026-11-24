@@ -338,6 +338,92 @@ Fiyatlar: Opus 5.5, Anthropic API listesi, 1M token başına.
 
 ---
 
+# Task 3: QA Engineer Custom Mode (M3 - Mode + Rules + Skill)
+
+Her yeni sohbet sıfırdan başlıyor; ekip el kitabını her seferinde yeniden anlatıyor, code review'da aynı yorumlar tekrar ediyor. Hedef: yalnızca test yazan ve çalıştıran, `tests/` dışında hiçbir dosyayı değiştiremeyen tek bir **QA Engineer** personası. Tek kaynak `docs/ENGINEERING-HANDBOOK.md`. Özet Word dosyası: `task3-qa-engineer-mode-auroro-pay.docx`.
+
+- **Platform:** macOS
+- **Tarih:** 2026-11-24
+- **Session ID:** `79770cf9-fbd4-406c-ac97-1614fad417c7`
+
+## 1. Akış
+
+| # | İstek | Sonuç |
+|---|---|---|
+| 1 | Claude ile mode, skill ve rules yazabilir miyim? QA Engineer personası kur | Bob dosyaları ve Claude Code karşılıkları yazıldı; `verify m3` 11/11 PASS |
+| 2 | Manuel test için promptları yaz (mevcut oturumda) | `@agent-qa-engineer` ile kullanılacak test promptları |
+| 3 | Ajan üzerinden yetki testi (aracı ajan iletti) | Ajan başka ajandan gelen "onay"ı kabul etmedi; hook'ta iki açık buldu, kapatıldı |
+| 4 | Kullanıcı onayıyla yetki testi | `main.py` Edit'i hook tarafından engellendi; `services/` değişmedi |
+| 5 | Token/maliyet raporunu güncelle, Task 3 docx'i oluştur | Bu bölüm ve docx |
+
+### Üç parça: Bob ve Claude Code karşılıkları
+
+| Parça | Bob | Claude Code |
+|---|---|---|
+| Mode (kimlik, yetki) | `.bob/custom_modes.yaml`: `qa-engineer`; `read` + `execute` + `skill`, `edit` yalnız `^tests/.*\.py$` | `.claude/agents/qa-engineer.md`: araçlar, skill ön yüklemesi, kendi hook'u |
+| Rules (her zaman) | `.bob/rules-qa-engineer/handbook-rules.md`: Decimal/float yasağı, hata zarfı, PII'sız log, gizli bilgi, parametreli SQL | `CLAUDE.md`: `@docs/ENGINEERING-HANDBOOK.md` ile el kitabının kendisi yüklenir (kopya yok) |
+| Skill (prosedür) | `.bob/skills/api-test-writing/SKILL.md`: TestClient, `store.reset()`, mutlu yol / negatif / sınır | `.claude/skills/api-test-writing/SKILL.md` (aynı içerik) |
+| Yetki sınırı | `fileRegex` | `.claude/hooks/qa_guard.py` (PreToolUse): Edit/Write yalnız `tests/`; Bash'te yalnız pytest, verify, okuma komutları |
+
+### Yetki testleri
+
+| Deneme | Yöntem | Sonuç |
+|---|---|---|
+| `services/core/main.py` Edit | Canlı (qa-engineer ajanı) | Engellendi: `outside tests/` |
+| Bash yönlendirme (`2>/dev/null`, `>`) | Canlı | Engellendi |
+| `tests/../services/core/fees.py` | Hook doğrudan | Engellendi |
+| `sed -i`, `find -delete/-exec`, `git --output` | Hook doğrudan | Engellendi |
+| `tests/` altına yazma, pytest, `git log` | Hook doğrudan | İzin verildi |
+
+Henüz denenmeyenler: skill'in otomatik devreye girmesi, yeni oturumda el kitabının kendiliğinden uygulanması, Bob'da modun engellemesi. `services/`, `verify/`, `docs/`, `fixtures/` değiştirilmedi; commit yapılmadı.
+
+### Doğrulama
+
+```
+$ python3 verify/run.py m3
+=== M3 Kendi custom mode'um ===
+11 passed in 0.02s
+M3 Kendi custom mode'um: PASS  11/11 kontrol  [0.1s]
+```
+
+## 2. Kullanım: token ve maliyet
+
+Kaynaklar: `~/.claude/projects/-Users-barissozen-bobathon-auroro-pay2/79770cf9-fbd4-406c-ac97-1614fad417c7.jsonl`, aynı klasördeki `subagents/` (2 qa-engineer çalışması) ve `dd255368-4492-4b2a-a7db-53cab074aba4.jsonl` (`claude --agent qa-engineer -p` headless testi).
+
+### Süre
+
+| | Saat (yerel, UTC+3) |
+|---|---|
+| Başlangıç | 10:48:26 |
+| Son kayıt | 10:57:51 |
+| **Toplam** | **~9 dk 25 sn** |
+
+### Model
+
+| Model | API çağrısı |
+|---|---|
+| Claude Opus 5.5 (`claude-opus-5-5`) | 31 (ana oturum 24, alt ajanlar 6, headless test 1) |
+
+### Token kullanımı ve maliyet
+
+Fiyatlar: Opus 5.5, Anthropic API listesi, 1M token başına.
+
+| Tür | Token | Birim fiyat | Maliyet |
+|---|---:|---:|---:|
+| Input (önbelleksiz) | 72 | $4.00 | $0.0003 |
+| Output | 22.221 | $20.00 | $0.4444 |
+| Cache yazma (1 saat TTL) | 92.952 | $8.00 | $0.7436 |
+| Cache okuma | 1.542.508 | $0.20 | $0.3085 |
+| **Toplam** | **1.657.753** | | **~$1.50** |
+
+### Notlar
+
+- Token'ların yaklaşık %93'ü cache okuma; en büyük maliyet kalemi cache yazma (%50).
+- Alt ajanlar ayrı bağlamla başladığı için kendi cache yazmalarını yaptı (14.283 token); bu, alt ajan kullanmanın ek maliyeti.
+- Rakamlar bu rapor isteğinden önceki kısmı kapsar. Canlı değer için `/cost` yazın.
+
+---
+
 # Özet: görev bazında kullanım
 
 | Görev | Session | Süre | API çağrısı | Token | Maliyet |
@@ -345,4 +431,5 @@ Fiyatlar: Opus 5.5, Anthropic API listesi, 1M token başına.
 | Task 0: First Day | `1f4e0172…` | ~15 dk 48 sn | 14 | 697.572 | ~$0.48 |
 | Task 1: Limits & Statements | `5bc0409b…` | ~12 dk 41 sn | 15 | 940.620 | ~$1.14 |
 | Task 2: INCIDENT-2041 | `dcf41a98…` | ~15 dk 55 sn | 20 | 1.258.575 | ~$0.93 |
-| **Toplam** | | **~44 dk 24 sn** | **49** | **2.896.767** | **~$2.55** |
+| Task 3: QA Engineer Mode | `79770cf9…` | ~9 dk 25 sn | 31 | 1.657.753 | ~$1.50 |
+| **Toplam** | | **~53 dk 49 sn** | **80** | **4.554.520** | **~$4.05** |
