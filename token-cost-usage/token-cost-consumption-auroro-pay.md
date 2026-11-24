@@ -122,3 +122,95 @@ Fiyatlar: Opus 5.5, Anthropic API listesi, 1M token başına.
 - En büyük maliyet kalemi cache yazma (%46). Claude Code 1 saatlik önbellek kullanıyor ve bu önbelleğin yazma fiyatı normal input fiyatının 2 katı.
 - Maliyet API liste fiyatıyla hesaplanmış tahmini bir değerdir. Claude Pro/Max aboneliği ile kullanılıyorsa ayrıca ücret ödenmez; kullanım abonelik limitinden düşer.
 - Rakamlar 6. soruya kadar olan kısmı kapsar. Canlı değer için Claude Code içinde `/cost` yazın.
+
+---
+
+# Task 1: Limits & Statements Servisi (M1 - Dokümandan koda)
+
+Regülatör şartı: müşteri bazlı günlük ve işlem başına transfer limiti, ayrıca işlem dökümü (statement). Kaynak dokümanlar `docs/PRD-limits.md` ve `docs/API-SPEC-limits.yaml`. Özet Word dosyası: `task1-limits-statements-auroro-pay.docx`.
+
+- **Platform:** macOS
+- **Tarih:** 2026-11-24
+- **Session ID:** `5bc0409b-171e-4417-ab02-944c12576fe4`
+
+## 1. Akış
+
+| # | İstek | Sonuç |
+|---|---|---|
+| 1 | Servisi PRD ve API-SPEC'e göre yaz | Servis plan yazılmadan kodlandı; `verify m1` 35/35 PASS |
+| 2 | Önce `task1-plan.md` oluştur, soruları sor, onaysız ilerleme | Plan yazıldı, 4 soru soruldu, önceki kod silindi |
+| 3 | Planı onayla | Servis ve testler plana göre sıfırdan yazıldı |
+| 4 | Token/maliyet raporunu güncelle, Task 1 docx'i oluştur | Bu bölüm ve docx |
+
+### Plan kararları
+
+| Soru | Karar |
+|---|---|
+| Test kapsamı hedefi | En az %85 |
+| `customer_id` doğrulaması | Yalnızca HTTP katmanında |
+| JSON'daki `from` alanı | `Query(alias="from")` |
+| Limit, kullanılmış tutarın altına düşürülürse `remaining_daily` | `"0.00"` (negatif değer dönmez) |
+
+### Çıktılar
+
+| Dosya | İçerik |
+|---|---|
+| `task1-plan.md` | Uygulama planı ve kararlar |
+| `services/limits/store.py` | Bellek içi depolama, kilit, `reset()` |
+| `services/limits/service.py` | PRD §4'teki 10 iş kuralı |
+| `services/limits/main.py` | `app`, doğrulama, hata zarfı |
+| `tests/test_limits.py` | API seviyesinde 48 test |
+
+### Doğrulama
+
+| Kontrol | Sonuç |
+|---|---|
+| `pytest tests/test_limits.py --cov=services/limits` | 48 passed, kapsam %98 |
+| `python3 verify/run.py m1` | **35/35 PASS** |
+| `semgrep` (`services/limits`) | 0 bulgu |
+
+## 2. Kullanım: token ve maliyet
+
+Kaynak: `~/.claude/projects/-Users-barissozen-bobathon-auroro-pay2/5bc0409b-171e-4417-ab02-944c12576fe4.jsonl`
+
+### Süre
+
+| | Saat (yerel, UTC+3) |
+|---|---|
+| Başlangıç | 10:04:36 |
+| Son kayıt | 10:17:17 |
+| **Toplam** | **~12 dk 41 sn** |
+
+### Model
+
+| Model | API çağrısı |
+|---|---|
+| Claude Opus 5.5 (`claude-opus-5-5`) | 15 |
+
+### Token kullanımı ve maliyet
+
+Fiyatlar: Opus 5.5, Anthropic API listesi, 1M token başına.
+
+| Tür | Token | Birim fiyat | Maliyet |
+|---|---:|---:|---:|
+| Input (önbelleksiz) | 36 | $4.00 | $0.0001 |
+| Output | 25.999 | $20.00 | $0.5200 |
+| Cache yazma (1 saat TTL) | 56.614 | $8.00 | $0.4529 |
+| Cache okuma | 857.971 | $0.20 | $0.1716 |
+| **Toplam** | **940.620** | | **~$1.14** |
+
+### Notlar
+
+- Token'ların yaklaşık %91'i cache okuma.
+- Task 0'dan farklı olarak en büyük maliyet kalemi output (%45). Sebep, bu görevde servis kodunun ve testlerin iki kez yazılması (önce plansız, sonra plana göre).
+- Rakamlar bu rapor isteğinden önceki kısmı kapsar. Canlı değer için `/cost` yazın.
+
+---
+
+# Özet: görev bazında kullanım
+
+| Görev | Session | Süre | API çağrısı | Token | Maliyet |
+|---|---|---:|---:|---:|---:|
+| Task 0: First Day | `1f4e0172…` | ~15 dk 48 sn | 14 | 697.572 | ~$0.48 |
+| Task 1: Limits & Statements | `5bc0409b…` | ~12 dk 41 sn | 15 | 940.620 | ~$1.14 |
+| **Toplam** | | **~28 dk 29 sn** | **29** | **1.638.192** | **~$1.62** |
