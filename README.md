@@ -145,8 +145,9 @@ Hesap ve transfer, raporlar, limitler (M1) ve **Değişiklik kontrolü** sekmele
 | `missions/` | Görev kartları |
 | `docs/` | PRD, API sözleşmesi, olay kaydı, güvenlik bileti, mühendislik el kitabı |
 | `fixtures/` | Olay logu ve yeniden üretme betiği, tedarikçi SDK, müşteri verisi |
-| `services/core/` | Üzerinde çalışılan servis |
+| `services/core/` | Üzerinde çalışılan servis (katmanlar: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)) |
 | `services/limits/` | M1'de sizin yazacağınız servis |
+| `services/shared/` | Servislerin ortak hata zarfı ve para yardımcıları |
 | `ui/` | Aurora Pay tarayıcı arayüzü |
 | `deploy/` | Dockerfile, Terraform, worker bağımlılıkları |
 | `verify/` | Otomatik doğrulama kontrolleri |
