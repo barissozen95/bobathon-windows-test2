@@ -1,11 +1,12 @@
 """Aurora Core: account and transfer API."""
 
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, Header
 
-from . import reports, service, store
+from . import errors, reports, service
 from .models import AccountCreate, ArchiveRequest, TransferRequest
 
 app = FastAPI(title="Aurora Core", version="0.1.0")
+errors.install(app)
 
 
 @app.get("/health")
@@ -20,10 +21,7 @@ def create_account(data: AccountCreate):
 
 @app.get("/accounts/{account_id}")
 def get_account(account_id: str):
-    account = store.accounts.get(account_id)
-    if account is None:
-        raise HTTPException(status_code=404, detail="Account not found")
-    return account
+    return service.get_account(account_id)
 
 
 @app.post("/transfers", status_code=201)
@@ -33,10 +31,7 @@ def create_transfer(req: TransferRequest, idempotency_key: str | None = Header(d
 
 @app.get("/transfers/{transfer_id}")
 def get_transfer(transfer_id: str):
-    transfer = store.transfers.get(transfer_id)
-    if transfer is None:
-        raise HTTPException(status_code=404, detail="Transfer not found")
-    return transfer
+    return service.get_transfer(transfer_id)
 
 
 @app.get("/reports/transfers")

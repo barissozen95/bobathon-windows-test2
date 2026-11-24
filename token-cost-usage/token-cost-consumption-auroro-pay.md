@@ -207,10 +207,142 @@ Fiyatlar: Opus 5.5, Anthropic API listesi, 1M token başına.
 
 ---
 
+# Task 2: INCIDENT-2041 Üretim Hatası (M2 - Bob Shell)
+
+SEV-2: müşterilerin parası iki kez düşüyor, yanlış hesaba gönderilen para kayboluyor, bakiyelerde kuruş altı farklar var ve istemciler 500 alıyor. Kaynaklar: `docs/INCIDENT-2041.md`, `fixtures/incident/transfer.log`, `fixtures/incident/repro.py`, `docs/FEE-POLICY.md`, `docs/ENGINEERING-HANDBOOK.md` (bölüm 1-2). Özet Word dosyası: `task2-incident-2041-auroro-pay.docx`.
+
+- **Platform:** macOS
+- **Tarih:** 2026-11-24
+- **Session ID:** `dcf41a98-4ac8-40e6-a9f3-8d67052f5835`
+
+## 1. Akış
+
+| # | İstek | Sonuç |
+|---|---|---|
+| 1 | Olayı Bob Shell ile, `--max-turns` ve `--max-cost` sınırı koyarak çöz | Dosyalar okundu, dört ayrı kök neden bulundu; `bob run --trust --max-turns 40 --max-cost 5` başlatıldı |
+| 2 | Bob Shell olmadan da yapabilirsin | Bob çalışması kullanıcı tarafından durduruldu (hiçbir dosyayı değiştirmemişti); düzeltme Claude Code ile yapıldı |
+| 3 | pytest uyarısını da çöz | `httpx2` kuruldu, `requirements-dev.txt`'e eklendi; 0 uyarı |
+| 4 | Token/maliyet raporunu güncelle, Task 2 docx'i oluştur | Bu bölüm ve docx |
+
+### Kök nedenler ve düzeltmeler
+
+| # | Şikâyet | Kök neden | Düzeltme |
+|---|---|---|---|
+| 1 | Çift borçlandırma | `store.idempotency` sözlüğü `service.py`'da hiç kullanılmıyordu | Başarılı transfer anahtarıyla saklanıyor; aynı anahtar ilk transferi (aynı `id`) döndürüyor |
+| 2 | Kayıp para | Gönderen bakiyesi alıcı aranmadan önce düşülüyordu; `KeyError` → 500 | Önce doğrula, sonra yaz; kontrol ve yazma tek kilit altında |
+| 3 | Kuruş farkları | `float` ile para hesabı; eşik `> 1000` (politika `>= 1000`); `round()` banker's rounding | `Decimal` + `ROUND_HALF_UP`; eşik dahil; tutar > 0 ve en fazla 2 ondalık |
+| 4 | Hata yönetimi | Genel `Exception`, yakalanmayan `KeyError`, `{"detail"}` gövdeleri | `errors.py`: tek hata zarfı (422 / 404 / 409), beklenmeyen hata sabit mesajlı 500 `INTERNAL_ERROR` |
+| - | Gizli tuzak (PII) | Loglara ad-soyad ve IBAN yazılıyordu | Loglarda yalnızca `transfer_id` ve `account_id` |
+
+Bilerek dokunulmayanlar: `reports.py` (SQL injection, kabuk komutu) ve `config.py` (koddaki sırlar) M5 kapsamında. `verify/`, `tests/`, `fixtures/`, `docs/` değiştirilmedi; commit yapılmadı.
+
+### Çıktılar
+
+| Dosya | İçerik |
+|---|---|
+| `services/core/errors.py` (yeni) | Alan istisnaları ve el kitabı hata zarfı handler'ları |
+| `services/core/fees.py` | `Decimal`, eşik dahil, `ROUND_HALF_UP` |
+| `services/core/models.py` | `Decimal` tutarlar, `> 0`, en fazla 2 ondalık |
+| `services/core/service.py` | Idempotency, önce doğrula sonra yaz, kilit, PII'sız log |
+| `services/core/main.py` | Hata handler'ları, 404'ler servis katmanından |
+| `requirements-dev.txt` | `httpx2>=2.16` |
+
+### Doğrulama
+
+```
+$ .venv/bin/python fixtures/incident/repro.py
+[PASS] Sikayet 1 - cift borclandirma
+[PASS] Sikayet 2 - kayip para
+[PASS] Sikayet 3 - kurus farklari
+[PASS] Sikayet 4 - hata yonetimi
+
+INCIDENT-2041: COZULDU
+```
+
+```
+$ .venv/bin/python -m pytest
+platform darwin -- Python 3.12.16, pytest-9.2.0, pluggy-1.7.0
+collected 49 items
+
+tests/test_health.py .                                    [  2%]
+tests/test_limits.py ................................................ [100%]
+
+49 passed in 0.27s
+```
+
+```
+$ python3 verify/run.py m2
+=== M2 Uretim hatasi (Bob Shell) ===
+24 passed in 0.25s
+[PASS] Ayni Idempotency-Key ile iki istek yalniz bir kez borclandirir
+[PASS] Farkli Idempotency-Key'ler ayri islem sayilir
+[PASS] Anahtarsiz istekler tekilleştirilmez
+[PASS] Bilinmeyen alici: 404 ACCOUNT_NOT_FOUND, gonderenin bakiyesi degismez
+[PASS] Bilinmeyen gonderen: 404 ACCOUNT_NOT_FOUND
+[PASS] Basarisiz transfer kayit olusturmaz
+[PASS] Bakiyeler kurus hassasiyetinde tam (89.95, kayan nokta artigi yok)
+[PASS] 10 kucuk transferden sonra bakiye tam (0.10 x 10)
+[PASS] Ucret FEE-POLICY.md ile ayni (esik dahil, ROUND_HALF_UP) (6/6)
+[PASS] Yetersiz bakiye: 409 INSUFFICIENT_FUNDS, bakiye degismez
+[PASS] Bakiye tutari karsiliyor ama ucreti karsilamiyorsa reddedilir
+[PASS] Gecersiz transfer govdesi: 422 VALIDATION_ERROR (5/5)
+[PASS] Hesap ve transfer 404'leri hata zarfi kullanir
+[PASS] Hicbir hata yanitinda stack trace veya ic hata mesaji yok
+[PASS] Basarili transfer hala calisiyor (alanlar, 201, bakiyeler)
+
+M2 Uretim hatasi (Bob Shell): PASS  24/24 kontrol  [0.3s]
+```
+
+| Kontrol | Sonuç |
+|---|---|
+| `repro.py` | **COZULDU**, çıkış kodu 0 |
+| `pytest` | 49 passed, 0 uyarı |
+| `python3 verify/run.py m2` | **24/24 PASS** |
+| `python3 verify/run.py m0` | 7/7 PASS (gerileme yok) |
+
+## 2. Kullanım: token ve maliyet
+
+Kaynak: `~/.claude/projects/-Users-barissozen-bobathon-auroro-pay2/dcf41a98-4ac8-40e6-a9f3-8d67052f5835.jsonl`
+
+### Süre
+
+| | Saat (yerel, UTC+3) |
+|---|---|
+| Başlangıç | 10:26:22 |
+| Son kayıt | 10:42:18 |
+| **Toplam** | **~15 dk 55 sn** |
+
+### Model
+
+| Model | API çağrısı |
+|---|---|
+| Claude Opus 5.5 (`claude-opus-5-5`) | 20 |
+
+### Token kullanımı ve maliyet
+
+Fiyatlar: Opus 5.5, Anthropic API listesi, 1M token başına.
+
+| Tür | Token | Birim fiyat | Maliyet |
+|---|---:|---:|---:|
+| Input (önbelleksiz) | 44 | $4.00 | $0.0002 |
+| Output | 13.370 | $20.00 | $0.2674 |
+| Cache yazma (1 saat TTL) | 52.975 | $8.00 | $0.4238 |
+| Cache okuma | 1.192.186 | $0.20 | $0.2384 |
+| **Toplam** | **1.258.575** | | **~$0.93** |
+
+### Notlar
+
+- Token'ların yaklaşık %95'i cache okuma; en büyük maliyet kalemi cache yazma (%46).
+- Durdurulan `bob run` çalışmasının bobcoin maliyeti bu tabloya dahil değil (Bob ayrı faturalanır).
+- Rakamlar bu rapor isteğinden önceki kısmı kapsar. Canlı değer için `/cost` yazın.
+
+---
+
 # Özet: görev bazında kullanım
 
 | Görev | Session | Süre | API çağrısı | Token | Maliyet |
 |---|---|---:|---:|---:|---:|
 | Task 0: First Day | `1f4e0172…` | ~15 dk 48 sn | 14 | 697.572 | ~$0.48 |
 | Task 1: Limits & Statements | `5bc0409b…` | ~12 dk 41 sn | 15 | 940.620 | ~$1.14 |
-| **Toplam** | | **~28 dk 29 sn** | **29** | **1.638.192** | **~$1.62** |
+| Task 2: INCIDENT-2041 | `dcf41a98…` | ~15 dk 55 sn | 20 | 1.258.575 | ~$0.93 |
+| **Toplam** | | **~44 dk 24 sn** | **49** | **2.896.767** | **~$2.55** |
