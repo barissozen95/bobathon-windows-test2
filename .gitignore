@@ -11,3 +11,4 @@ archives/*.tgz
 PWNED*
 .vscode/
 reports/bob-run.json
+reports/bob-limits/*.err
