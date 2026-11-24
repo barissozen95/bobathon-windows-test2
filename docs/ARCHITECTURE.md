@@ -31,7 +31,7 @@ services/
     infrastructure/  memory_store.py, transfer_log.py, archive.py
     api/             app.py, routes.py, schemas.py
     config.py        ortam değişkenlerinden okunan ayarlar
-    main.py store.py fees.py service.py models.py errors.py reports.py   (uyumluluk yolları)
+    main.py store.py fees.py service.py reports.py                     (uyumluluk yolları)
   limits/
     domain/          limits.py
     application/     limits.py, statements.py
