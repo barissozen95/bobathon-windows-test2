@@ -10,6 +10,9 @@ idempotency: dict[str, dict] = {}
 
 
 def reset() -> None:
+    from . import reports  # local import: reports must not be a hard dependency at import time
+
     accounts.clear()
     transfers.clear()
     idempotency.clear()
+    reports.reset()

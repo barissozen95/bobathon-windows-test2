@@ -51,16 +51,14 @@ def execute_transfer(req: TransferRequest, idempotency_key: str | None = None) -
             raise ValidationFailed("Gönderen ve alıcı aynı hesap olamaz")
         src = get_account(req.from_account)
         dst = get_account(req.to_account)
+        if req.currency != src["currency"] or req.currency != dst["currency"]:
+            raise ValidationFailed("Transfer para birimi hesapların para birimiyle eşleşmiyor")
 
         amount = fees.to_money(req.amount)
         fee = fees.fee_for(amount)
         total = amount + fee
         if src["balance"] < total:
             raise InsufficientFunds()
-
-        # Write phase.
-        src["balance"] = src["balance"] - total
-        dst["balance"] = dst["balance"] + amount
 
         transfer = {
             "id": str(uuid.uuid4()),
@@ -72,10 +70,16 @@ def execute_transfer(req: TransferRequest, idempotency_key: str | None = None) -
             "status": "COMPLETED",
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
+        # The only step that can fail (SQLite) runs before any balance is touched, so a failure
+        # leaves every balance and record unchanged (handbook section 2, atomicity).
+        reports.record_transfer(transfer, src["owner_name"])
+
+        # Write phase: plain in-memory assignments, cannot fail part-way.
+        src["balance"] = src["balance"] - total
+        dst["balance"] = dst["balance"] + amount
         store.transfers[transfer["id"]] = transfer
         if idempotency_key:
             store.idempotency[idempotency_key] = transfer
-        reports.record_transfer(transfer, src["owner_name"])
 
     logger.info(
         "Transfer completed: transfer_id=%s from=%s to=%s",

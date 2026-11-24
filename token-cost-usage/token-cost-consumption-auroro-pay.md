@@ -424,6 +424,134 @@ Fiyatlar: Opus 5.5, Anthropic API listesi, 1M token başına.
 
 ---
 
+# Task 4: Kapsamlı Test (M4 - qa-engineer ile negatif davranışlar ve testler)
+
+Başlangıç durumu: 49 test geçiyordu ama `services/core` satır kapsamı **%55** idi. Mevcut testlerin hiçbiri `services/core` davranışını test etmiyordu: `test_limits.py` ayrı bir servisi test ediyor, `test_health.py` yalnızca `/health`'i kontrol ediyor. Hedef: handbook §4'e göre (mutlu yol, negatif, sınır değeri, %85 kapsam) testleri `qa-engineer` ajanıyla yazmak; testlerin ortaya çıkardığı üretim hatalarını düzeltmek. Kaynaklar: `docs/ENGINEERING-HANDBOOK.md` (§1-5), `docs/FEE-POLICY.md`. Özet Word dosyası: `task4-comprehensive-tests-auroro-pay.docx`.
+
+- **Platform:** macOS
+- **Tarih:** 2026-11-24
+- **Session ID:** `5d167da0-ea57-41c7-8638-31d6adf6f494`
+
+## 1. Akış
+
+| # | İstek | Sonuç |
+|---|---|---|
+| 1 | `qa-engineer` ile handbook §4 ve FEE-POLICY'ye göre testleri değil, negatif davranışları listele | 7 grupta ~50 negatif davranış (A, G, T, F, R, P, E) ve 5 olası üretim hatası (H1-H5) |
+| 2 | Bu hataları ve bulguları düzelt | `services/core` içinde 5 dosya düzeltildi; m2 24/24, m5'in kod maddeleri geçiyor |
+| 3 | Listeyi `qa-engineer` ile `tests/` altında teste dönüştür | 5 test dosyası + `conftest.py`; 144 test, kapsam %98 |
+| 4 | `qa-engineer` ile tekrar kontrol et | Bağımsız denetim: handbook §4 uyumu tam; 5 test zayıflığı, 3 üretim riski |
+| 5 | m5 hariç bulgulara göre düzelt | Üretimde 3 doğrulama, testlerde 4 iyileştirme + 31 yeni test; 175 test |
+| 6 | Token/maliyet raporunu güncelle, Task 4 docx'i oluştur | Bu bölüm ve docx |
+
+### Üretim hataları ve düzeltmeler
+
+| # | Bulgu | Kural | Düzeltme |
+|---|---|---|---|
+| H1 | SQL injection: `owner` f-string ile sorguya ekleniyordu | §5 | Parametreli sorgu (`WHERE owner_name = ?`) |
+| H2 | `os.system` ile shell komutu; `..`, `;`, `$()` engellenmiyordu | §5 | `tarfile` ile shell'siz arşiv; dosya adı doğrulaması (422); hedef yol `archives/` dışına çıkamaz |
+| H3 | `API_KEY`, `DB_PASSWORD`, `JWT_SECRET` kodda sabit | §5 | `AURORA_*` ortam değişkenleri |
+| H4 | Bakiyeler, hata verebilecek SQLite yazımından önce değişiyordu | §2 atomiklik | Rapor kaydı önce, bakiye yazımı sonra |
+| H5 | `store.reset()` rapor tablosunu sıfırlamıyordu | §4 izolasyon | `reports.reset()` çağrılıyor |
+| Ek | Para birimi kontrolü yoktu; `currency`, `owner_name`, `iban` serbestti | §2 doğrulama | Hesap ile transfer para birimi eşleşmeli; `^[A-Z]{3}$`; boş alanlar 422 |
+
+### Test dosyaları (yalnızca `tests/` altında, `qa-engineer` yazdı)
+
+| Dosya | Kapsadığı davranışlar |
+|---|---|
+| `tests/helpers.py` | `D()` (Decimal karşılaştırma), `assert_error()` (hata zarfı, `detail` yok) |
+| `tests/test_core_accounts.py` | Hesap açma ve okuma: 409, 422, 404; bakiye 0.00 / -0.01; boş alanlar; para birimi sınırları |
+| `tests/test_core_transfers.py` | Tutar sınırları, yetersiz bakiye (bir kuruş eksik), atomiklik, idempotency, loglarda PII yok, para birimi |
+| `tests/test_core_fees.py` | FEE-POLICY örnek tablosu (6/6), 1000.00 eşiği, ROUND_HALF_UP (1.00, 5.00, 9.00), float kalıntısı yok |
+| `tests/test_core_reports.py` | SQL injection, `O'Brien`, yol gezintisi, shell metakarakterleri, dosya adı 100/101 karakter |
+| `tests/test_core_errors.py` | 404/405/500 zarfı, sabit `INTERNAL_ERROR` mesajı, 8 farklı 422'de iç ayrıntı sızıntısı yok |
+
+### Bağımsız denetimde bulunan test zayıflıkları ve sonuçları
+
+| # | Zayıflık | Sonuç |
+|---|---|---|
+| 1 | `3.00 → 0.02` iki yuvarlama yöntemini ayırt etmiyor | `9.00 → 0.05` ile değiştirildi (önerilen `7.00` da ayırt etmiyordu; ajan fark etti) |
+| 2 | Sızıntı kontrolü yalnızca "Traceback" arıyordu | 8 tetikleyici; `input_value`, `type=`, `errors.pydantic.dev`, `File "` da aranıyor |
+| 3 | Atomiklik sırası testle korunmuyor | Yazılmadı: iç yapıya monkeypatch gerekir, §4'e aykırı |
+| 4 | `from conftest import` `--import-mode=importlib` ile kırılıyordu | `tests/helpers.py`; iki modda da 175 passed |
+| 5 | `/health` testi iki kez yazılmıştı | Tekrar eden silindi |
+
+Bilerek dokunulmayanlar: `deploy/` altındaki m5 maddeleri (Dockerfile, Terraform, zafiyetli bağımlılıklar) ve `transfer_log` içindeki `owner_name` (ürün/güvenlik kararı bekliyor). `verify/`, `docs/`, `fixtures/` değiştirilmedi; commit yapılmadı.
+
+### Doğrulama
+
+```
+$ python3 verify/run.py m4
+=== M4 Kapsamli test ===
+12 passed in 3.40s
+[PASS] En az 25 test yazilmis
+[PASS] Yazdiginiz testlerin tamami geciyor (bulduklariniz hatalari duzeltin)
+[PASS] services/core satir kapsami en az %85
+[PASS] Testler ekip standardina uyuyor (TestClient, store.reset, ic fonksiyon import'u yok)
+[PASS] Testleriniz bilincli olarak bozulan kodu yakaliyor (4/4)
+[PASS] Gizli hata 1: ayni id ile ikinci hesap mevcut hesabi ezmemeli (409 ACCOUNT_ALREADY_EXISTS)
+[PASS] Gizli hata 2: negatif acilis bakiyesi reddedilmeli (422 VALIDATION_ERROR)
+[PASS] Gizli hata 3: kendine transfer reddedilmeli ve bakiye degismemeli (422)
+[PASS] Gizli hata 4: log'lara ad-soyad / IBAN yazilmamali (ENGINEERING-HANDBOOK 3)
+
+M4 Kapsamli test: PASS  12/12 kontrol  [3.5s]
+```
+
+| Kontrol | Önce | Sonra |
+|---|---|---|
+| `pytest -q` | 49 passed | **175 passed** (`--import-mode=importlib` ile de) |
+| `services/core` kapsamı (satır + dal) | %55 | **%98** (eksik: `errors.py:88`, `reports.py:62`; API'den ulaşılamıyor) |
+| `python3 verify/run.py m4` | - | **12/12 PASS** |
+| `python3 verify/run.py m2` | 24/24 | 24/24 (gerileme yok) |
+| `python3 verify/run.py m5` | - | 8/13 (kalan 5 madde `deploy/` altında) |
+
+## 2. Kullanım: token ve maliyet
+
+Kaynaklar: `~/.claude/projects/-Users-barissozen-bobathon-auroro-pay2/5d167da0-ea57-41c7-8638-31d6adf6f494.jsonl` ve aynı klasördeki `subagents/` (4 qa-engineer çalışması).
+
+### Süre
+
+| | Saat (yerel, UTC+3) |
+|---|---|
+| Başlangıç | 11:01:13 |
+| Son kayıt | 11:20:19 |
+| **Toplam** | **~19 dk 06 sn** |
+
+### Model
+
+| Model | API çağrısı |
+|---|---|
+| Claude Opus 5.5 (`claude-opus-5-5`) | 84 (ana oturum 32, qa-engineer alt ajanları 52) |
+
+### Token kullanımı ve maliyet
+
+Fiyatlar: Opus 5.5, Anthropic API listesi, 1M token başına.
+
+| Tür | Token | Birim fiyat | Maliyet |
+|---|---:|---:|---:|
+| Input (önbelleksiz) | 186 | $4.00 | $0.0007 |
+| Output | 76.631 | $20.00 | $1.5326 |
+| Cache yazma (1 saat TTL) | 238.867 | $8.00 | $1.9109 |
+| Cache okuma | 3.789.906 | $0.20 | $0.7580 |
+| **Toplam** | **4.105.590** | | **~$4.20** |
+
+### Alt ajanlar
+
+| Çalışma | API çağrısı | Output | Maliyet |
+|---|---:|---:|---:|
+| 1. Negatif davranış listesi | 7 | 9.762 | ~$0.40 |
+| 2. Testleri yazma | 17 | 16.710 | ~$0.72 |
+| 3. Bağımsız yeniden kontrol | 11 | 9.534 | ~$0.52 |
+| 4. Zayıflıkları düzeltme + yeni testler | 17 | 11.059 | ~$0.59 |
+| **Alt ajan toplamı** | **52** | **47.065** | **~$2.23** |
+
+### Notlar
+
+- Token'ların yaklaşık %92'si cache okuma; en büyük maliyet kalemi cache yazma (%45), ardından output (%36).
+- Maliyetin yarısından fazlası (~%53) `qa-engineer` alt ajanlarından geliyor. Her alt ajan sıfır bağlamla başladığı için kendi cache yazmasını yaptı (toplam 131.386 token).
+- Rakamlar bu rapor isteğinden önceki kısmı kapsar. Canlı değer için `/cost` yazın.
+
+---
+
 # Özet: görev bazında kullanım
 
 | Görev | Session | Süre | API çağrısı | Token | Maliyet |
@@ -432,4 +560,5 @@ Fiyatlar: Opus 5.5, Anthropic API listesi, 1M token başına.
 | Task 1: Limits & Statements | `5bc0409b…` | ~12 dk 41 sn | 15 | 940.620 | ~$1.14 |
 | Task 2: INCIDENT-2041 | `dcf41a98…` | ~15 dk 55 sn | 20 | 1.258.575 | ~$0.93 |
 | Task 3: QA Engineer Mode | `79770cf9…` | ~9 dk 25 sn | 31 | 1.657.753 | ~$1.50 |
-| **Toplam** | | **~53 dk 49 sn** | **80** | **4.554.520** | **~$4.05** |
+| Task 4: Kapsamlı Test | `5d167da0…` | ~19 dk 06 sn | 84 | 4.105.590 | ~$4.20 |
+| **Toplam** | | **~1 sa 12 dk 55 sn** | **164** | **8.660.110** | **~$8.25** |

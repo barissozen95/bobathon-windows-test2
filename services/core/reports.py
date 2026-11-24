@@ -2,8 +2,12 @@
 
 import os
 import sqlite3
+import tarfile
 
 from . import config
+from .errors import ValidationFailed
+
+REPORTS_DIR = "reports"
 
 _conn = sqlite3.connect(":memory:", check_same_thread=False)
 _conn.execute(
@@ -11,6 +15,18 @@ _conn.execute(
     "id TEXT, owner_name TEXT, from_account TEXT, to_account TEXT, "
     "amount TEXT, created_at TEXT)"
 )
+
+_COLUMNS = ["id", "owner_name", "from_account", "to_account", "amount", "created_at"]
+_FIND_BY_OWNER = (
+    "SELECT id, owner_name, from_account, to_account, amount, created_at "
+    "FROM transfer_log WHERE owner_name = ?"
+)
+
+
+def reset() -> None:
+    """Clear the transfer log (called from store.reset())."""
+    _conn.execute("DELETE FROM transfer_log")
+    _conn.commit()
 
 
 def record_transfer(transfer: dict, owner_name: str) -> None:
@@ -29,13 +45,21 @@ def record_transfer(transfer: dict, owner_name: str) -> None:
 
 
 def find_transfers_by_owner(owner: str) -> list[dict]:
-    columns = ["id", "owner_name", "from_account", "to_account", "amount", "created_at"]
-    cursor = _conn.execute(
-        f"SELECT id, owner_name, from_account, to_account, amount, created_at FROM transfer_log WHERE owner_name = '{owner}'"
-    )
-    return [dict(zip(columns, row)) for row in cursor.fetchall()]
+    # Parameterised query: user input never becomes part of the SQL text (handbook section 5).
+    cursor = _conn.execute(_FIND_BY_OWNER, (owner,))
+    return [dict(zip(_COLUMNS, row)) for row in cursor.fetchall()]
 
 
 def archive_statements(filename: str) -> int:
-    command = "tar czf %s/%s.tgz reports/" % (config.ARCHIVE_DIR, filename)
-    return os.system(command)
+    """Pack the reports directory into <ARCHIVE_DIR>/<filename>.tgz without invoking a shell.
+
+    `filename` is validated by ArchiveRequest (no path separators, no `..`); the resolved
+    target is checked again here so a bypass cannot escape ARCHIVE_DIR.
+    """
+    archive_dir = os.path.realpath(config.ARCHIVE_DIR)
+    target = os.path.realpath(os.path.join(archive_dir, f"{filename}.tgz"))
+    if os.path.dirname(target) != archive_dir:
+        raise ValidationFailed("Geçersiz dosya adı")
+    with tarfile.open(target, "w:gz") as tar:
+        tar.add(REPORTS_DIR)
+    return 0
