@@ -936,6 +936,132 @@ Fiyatlar: Opus 5.5, Anthropic API listesi, 1M token başına.
 
 ---
 
+# Task 8: Temiz Mimari ve GitHub Teslimi (M8 - dal, commit, push, PR)
+
+Çalışma dizini temizlendi, servisler katmanlı mimariye taşındı, dalda biriken her commit için PR açıldı, CI açılıp yeşil PR'lar birleştirildi ve `verify m8` geçirildi. Kaynaklar: `docs/ENGINEERING-HANDBOOK.md` (§4-6), `.github/PULL_REQUEST_TEMPLATE.md`, `missions/M8-github-teslim.md`. Özet Word dosyası: `task8-clean-architecture-github-auroro-pay.docx`.
+
+- **Platform:** macOS
+- **Tarih:** 2026-11-24
+- **Session ID:** `e0387b58-76f3-4f88-a553-f8d707edfa30`
+
+## 1. Akış
+
+| # | İstek | Sonuç |
+|---|---|---|
+| 1 | Çalışma dizinini temizle, clean architecture oluştur | Kapsam soruldu: katmanlı, eski yollar korunur; yalnız üretilmiş dosyalar silinir. 175 test, M0–M7 PASS |
+| 2 | Her commit için PR aç, şablonu doldur | 10 stacked PR (#1–#10), her biri tek commit; kutular her commit kendi worktree'sinde doğrulanarak işaretlendi |
+| 3 | CI'ı aç, m8'i geçir, PR'ları sırayla birleştir | Actions API ile açıldı; `origin` → kendi fork; m8 6/6; kırmızı CI'lı #1–#6 merge edilmedi, #7–#10 merge |
+| 4 | `verify m8` FAIL (dalda 0 commit, PR MERGED) | `feature/architecture-followups`: 3 commit, PR #11, CI yeşil; m8 6/6 |
+| 5 | Token/maliyet raporunu güncelle, Task 8 docx'i oluştur | Bu bölüm ve docx |
+
+### Temizlik
+
+8 boş `reports/bob-limits/*.err` (izlenmeyen), `__pycache__/` klasörleri ve `.coverage` silindi. Takip edilen dosyalara dokunulmadı. `.err` dosyaları sonradan `.gitignore`'a eklendi.
+
+### Katmanlı mimari (`docs/ARCHITECTURE.md`)
+
+| Katman | Sorumluluk | Bilmediği |
+|---|---|---|
+| `domain/` | İş kuralları, varlıklar, domain hataları | FastAPI, HTTP, depolama |
+| `application/` | Use-case'ler: önce doğrula sonra yaz, kilit, idempotency | HTTP şemaları |
+| `infrastructure/` | In-memory store, SQLite transfer log, arşiv | HTTP |
+| `api/` | `create_app()`, router'lar, şemalar, girdi ayrıştırma | İş kuralı |
+| `services/shared/` | Tek hata zarfı (`install_error_handlers`), `to_money` / `format_money` | Servise özgü kurallar |
+
+Eski yollar (`services.core.main`, `store`, `fees`, `service`, `reports`, `services.limits.main`, `store`, `service`) ince uyumluluk modülü olarak kaldı. M4 mutant testi `services.core.store.idempotency` değerini çalışma anında değiştirdiği için `store.py`, `sys.modules` ile `infrastructure/memory_store` modülünün takma adıdır (aynı modül nesnesi). Davranış farkı: limits servisi artık 5xx HTTP hatalarını da `INTERNAL_ERROR` olarak döndürüyor.
+
+### Pull request'ler (`barissozen95/bobathon-windows-test2`)
+
+| PR | Dal | CI | Sonuç |
+|---|---|---|---|
+| #1 | `feature/task0-first-day-notes` | Kırmızı | Commit'i #7 ile main'e girdi (GitHub otomatik merged) |
+| #2–#6 | `limits-statements-service`, `task1-report-screenshots`, `fix/incident-2041-transfers`, `qa-engineer-mode`, `fix/core-security-and-tests` | Kırmızı | Kapatıldı; commit'ler #7 ile main'de |
+| #7 | `fix/deploy-hardening` | Yeşil | Hedef main yapıldı, merge commit |
+| #8–#10 | `fraudshield-vendor-review`, `bobcoin-limit-measurements`, `layered-architecture` | Yeşil | Sırayla merge |
+| #11 | `feature/architecture-followups` | Yeşil | Açık (M8 açık PR istiyor) |
+
+#1–#6'nın kırmızılığı o tarihteki gerçek durum (kapsam %55 ve Semgrep bulguları sonraki commit'lerde gideriliyor). Handbook §6 kırmızı CI ile merge'e izin vermediği için kullanıcı onayıyla #7'den yeşil merge yapıldı.
+
+| Şablon kutusu | İşaretlendiği PR'lar |
+|---|---|
+| `pytest` yeşil | Hepsi |
+| Kapsam >= %85 | #6 ve sonrası |
+| `scan.sh` 0 bulgu, kodda gizli bilgi yok | #7 ve sonrası |
+| `Decimal` / hata zarfı / PII'sız log | #4 ve sonrası (`git grep -w float`, `verify m2` 24/24) |
+
+### Takip dalı (PR #11)
+
+| Commit | Neden |
+|---|---|
+| Kullanılmayan `core/errors.py` ve `core/models.py` silindi | Hiçbir yerden import edilmiyordu; kapsam %94 → %96. `reports.py` kılavuz ve M5 kartında geçtiği için korundu |
+| `.gitignore`: `reports/bob-limits/*.err` | `bob_limit_matrix.sh` stderr çıktıları |
+| README ve CLAUDE.md → `docs/ARCHITECTURE.md` | Mimari dokümanı bulunabilir olsun |
+
+Açık kalanlar: PR #11 eğitmen kontrolüne kadar açık kalmalı (merge edilirse `verify m8` yeniden FAIL olur). Yerel remote'lar değişti: `origin` = kendi fork, `upstream` = gayecaliskaner reposu. PR dalları silinmedi.
+
+### Doğrulama
+
+```
+$ python3 verify/run.py m8
+=== M8 GitHub teslimat ===
+[PASS] Calisma main'de degil, feature/ veya fix/ dalinda
+[PASS] Tum degisiklikler commit edilmis
+[PASS] Dalda en az 3 anlamli commit var (tek 'update' degil)
+[PASS] Dal GitHub'a (origin) push edilmis
+[PASS] Dal icin acik bir Pull Request var (gh ile dogrulanir)
+[PASS] PR'daki CI kontrolleri basarili (gh pr checks)
+
+M8 GitHub teslimat: PASS  6/6 kontrol  [3.4s]
+```
+
+| Kontrol | Önce | Sonra |
+|---|---|---|
+| `pytest -q` | 175 passed | 175 passed |
+| `services/core` kapsamı | %98 | %96 (yalnız uyumluluk modülleri kapsam dışı) |
+| `scripts/scan.py` | 0 bulgu | 0 bulgu |
+| `verify` M0–M7 | PASS | PASS (gerileme yok) |
+| `python3 verify/run.py m8` | 2/6 | **6/6 PASS** |
+| main üzerindeki CI | - | Yeşil |
+
+## 2. Kullanım: token ve maliyet
+
+Kaynak: `~/.claude/projects/-Users-barissozen-bobathon-auroro-pay2/e0387b58-76f3-4f88-a553-f8d707edfa30.jsonl`
+
+### Süre
+
+| | Saat (yerel, UTC+3) |
+|---|---|
+| Başlangıç | 12:21:17 |
+| Son kayıt | 12:50:19 |
+| **Toplam** | **~29 dk 02 sn** |
+
+### Model
+
+| Model | API çağrısı |
+|---|---|
+| Claude Opus 5.5 (`claude-opus-5-5`) | 53 (alt ajan yok) |
+
+### Token kullanımı ve maliyet
+
+Fiyatlar: Opus 5.5, Anthropic API listesi, 1M token başına.
+
+| Tür | Token | Birim fiyat | Maliyet |
+|---|---:|---:|---:|
+| Input (önbelleksiz) | 114 | $4.00 | $0.0005 |
+| Output | 50.246 | $20.00 | $1.0049 |
+| Cache yazma (1 saat TTL) | 149.858 | $8.00 | $1.1989 |
+| Cache okuma | 5.612.110 | $0.20 | $1.1224 |
+| **Toplam** | **5.812.328** | | **~$3.33** |
+
+### Notlar
+
+- Token'ların yaklaşık %97'si cache okuma; maliyet üç kaleme neredeyse eşit dağılıyor: cache yazma (%36), cache okuma (%34), output (%30).
+- Cache okuma payı önceki görevlerden yüksek: uzun oturum, CI bekleme ve doğrulama adımlarının her biri tüm bağlamı yeniden okuttu.
+- GitHub Actions dakikaları bu tabloya dahil değil.
+- Rakamlar bu rapor isteğinden önceki kısmı kapsar. Canlı değer için `/cost` yazın.
+
+---
+
 # Özet: görev bazında kullanım
 
 | Görev | Session | Süre | API çağrısı | Token | Maliyet |
@@ -948,6 +1074,7 @@ Fiyatlar: Opus 5.5, Anthropic API listesi, 1M token başına.
 | Task 5: Güvenlik Bulguları | `39d65112…` | ~9 dk 19 sn | 26 | 1.553.314 | ~$1.09 |
 | Task 6: Tedarikçi SDK ve Müşteri Verisi | `5a42ef75…` | ~9 dk 15 sn | 29 | 1.871.309 | ~$1.45 |
 | Task 7: Bobcoin ve Harcama Sınırları | `8f7853a5…` | ~14 dk 21 sn | 35 | 2.122.643 | ~$2.03 |
-| **Toplam** | | **~1 sa 45 dk 50 sn** | **254** | **14.207.376** | **~$12.82** |
+| Task 8: Temiz Mimari ve GitHub Teslimi | `e0387b58…` | ~29 dk 02 sn | 53 | 5.812.328 | ~$3.33 |
+| **Toplam** | | **~2 sa 14 dk 52 sn** | **307** | **20.019.704** | **~$16.15** |
 
 Bob Shell harcaması bu tabloya dahil değildir (Task 7: ~0.70 Bobcoin).
