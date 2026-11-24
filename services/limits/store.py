@@ -1,34 +1,7 @@
-"""In-memory storage for limits, daily usage and approved transactions."""
+"""Public store API; alias of `services.limits.infrastructure.memory_store` (same module object)."""
 
-import threading
-from dataclasses import dataclass
-from datetime import date
-from decimal import Decimal
+import sys
 
-# Guards every read-check-write sequence so authorize is atomic.
-lock = threading.RLock()
+from .infrastructure import memory_store
 
-
-@dataclass(frozen=True)
-class CustomerLimits:
-    daily_limit: Decimal
-    per_transfer_limit: Decimal
-
-
-@dataclass(frozen=True)
-class Entry:
-    occurred_on: date
-    amount: Decimal
-    description: str | None
-
-
-limits: dict[str, CustomerLimits] = {}
-usage: dict[tuple[str, date], Decimal] = {}
-entries: dict[str, list[Entry]] = {}
-
-
-def reset() -> None:
-    with lock:
-        limits.clear()
-        usage.clear()
-        entries.clear()
+sys.modules[__name__] = memory_store

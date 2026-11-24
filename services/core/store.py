@@ -1,18 +1,11 @@
-"""In-memory persistence for Aurora Core (workshop only, not for production).
+"""Public store API (`store.reset()` is part of the test API, see ENGINEERING-HANDBOOK).
 
-`reset()` is part of the public test API (see docs/ENGINEERING-HANDBOOK.md).
-Do not remove it.
+This name is an alias of `services.core.infrastructure.memory_store`: both resolve to the
+same module object, so attribute writes here are seen by the application layer.
 """
 
-accounts: dict[str, dict] = {}
-transfers: dict[str, dict] = {}
-idempotency: dict[str, dict] = {}
+import sys
 
+from .infrastructure import memory_store
 
-def reset() -> None:
-    from . import reports  # local import: reports must not be a hard dependency at import time
-
-    accounts.clear()
-    transfers.clear()
-    idempotency.clear()
-    reports.reset()
+sys.modules[__name__] = memory_store
